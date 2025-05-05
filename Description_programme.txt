@@ -1,0 +1,100 @@
+### QuChemReport Software Architecture
+
+**QuChemReport** is designed as a comprehensive solution for computational chemists to automate the process of reading, analyzing, and reporting molecular calculation results (logs) from various molecular computational chemistry softwares. Two use cases have been thought. Either a user provides a list of logs and ask for the quality of each and the conformity of the ensemble; or a user provides a list of logs and asks for a report. The report will be produced if the quality and conformity cecks are passed.  The architecture integrates specialized tools and libraries to handle specific aspects of the workflow, from data input and processing to visualization and report generation.
+
+#### C4 Containers:
+
+1. **Data Analysis**: Checks the quality of each results logs, the conformity of the ensemble and the possibility of data enrichment. Depending on pre selected rules. Utilizes `cclib`, a Python library for parsing and interpreting the results of computational chemistry packages. 
+
+2. **Data Enrichment and Visualization Module**: If possible enrich the data. Employs `orbkit` for quantum chemical post-processing, especially for the calculation and discretization of electronic functions. Generates reports. Leverages `Matplotlib` for graphs production and `Mayavi` for generating three-dimensional representations of molecular surfaces, electron density differences, and other spatial data. 
+
+3. **Logging**:  Handles the journalization.
+
+#### C4 Components:
+
+1. Data Analysis Container
+The Data Analysis container is at the forefront of the QuChemReport workflow. It's responsible for the initial handling of computational chemistry data, ensuring its quality and consistency.
+
+Components:
+1.1 Quality Check: Validates the integrity and completeness of calculation logs from various chemistry software. It looks for errors or incomplete calculations that may affect the analysis. 
+1.2 Data Pre-Processing: Utilizes cclib for extracting and standardizing data from diverse output files. This component transforms raw data into a uniform format for further processing and analysis.
+1.3 Conformity Checker: Compares molecular data across different calculations to ensure they match specified criteria such as molecular formula, charge, and spin multiplicity. This ensures that only comparable datasets are analyzed together. This component also applies user-defined rules to determine the suitability of datasets for enrichment and analysis. 
+
+2. Data Enrichment and Visualization Module
+This module takes processed data to the next level by enriching it with additional computations and transforming it into visual and graphical representations.
+
+Components:
+2.1 Visualization. Hadles  the visualization of the results. Generates tables, graphs and surfaces. Export to PNG files, docx and pdf reports. 
+2.2 Data Enrichment: Enhances the dataset with additional calculated properties or derived data, further enriching the analysis. Uses orbkit to perform advanced post-processing tasks like calculating and discretizing electronic functions. 
+
+Logging Container
+The Logging container provides a support structure for the application by recording its operations, errors, and significant events.
+
+Components:
+Operation Logger: Tracks and logs general operations of the system, including user interactions, module activations, and data processing milestones. This is vital for debugging and understanding the system's workflow.
+Error Logger: Captures and logs detailed information about errors encountered during the execution of QuChemReport. This aids in troubleshooting and improving the system's reliability.
+Event Tracker: Records significant events and decisions made during the analysis and visualization processes. This can include choices made by the Rule-Based Selector, successful enrichments, and visualization generation, providing insights into the system's analytical path.
+
+Files: 
+For an organized and effective project structure for **QuChemReport**, it is essential to have a clear file naming convention that reflects the functionality and logical grouping of the Python scripts. Here is a suggested layout for the file organization and naming, along with a description of the expected functions within each file:
+
+### 1. **Data Handling and Analysis**
+
+- **`data_reader.py`**
+  - Functions for reading and parsing log files from different quantum chemistry software using cclib and other parsers.
+- **`data_analyzer.py`**
+  - Functions to perform quality checks on the data.
+  - Functions to check the conformity of data sets against specified criteria.
+
+### 2. **Data Enrichment and Visualization**
+
+- **`data_enrichment.py`**
+  - Functions for calculating additional molecular properties and enhancements using orbkit.
+- **`visualization_setup.py`**
+  - Functions to set up visualization parameters and dependencies.
+- **`plot_generator.py`**
+  - Functions to generate various plots using Matplotlib, handling both UV-Vis absorption spectra and other types of plots.
+- **`3d_visualization.py`**
+  - Functions to generate 3D visualizations using Mayavi for molecular structures, orbitals, and electron density.
+
+### 3. **Report Generation**
+
+- **`report_generator.py`**
+  - Functions to compile analysis and visualizations into structured reports.
+  - Functions to export reports in various formats like PDF or DOCX using Python-docx or ReportLab.
+
+### 4. **Utility and Helper Functions**
+
+- **`utils.py`**
+  - Contains helper functions, conversion utilities, and frequently used constants.
+- **`parameters.py`**
+  - Defines and stores parameters used across various modules, such as visualization parameters or calculation settings.
+
+### 5. **Logging and Error Handling**
+
+- **`logger.py`**
+  - Functions for logging runtime information and errors, helping in debugging and maintaining records of the operations performed by the software.
+
+### 6. **Main Execution Script**
+
+- **`main.py`**
+  - The main script that integrates all modules, handles command-line arguments, and manages the overall flow of processes.
+
+### 7. **Configuration and Environment**
+
+- **`config.py`**
+  - Manages configuration settings for the application, such as paths, environment variables, and external tool configurations.
+
+### 8. **Unit Tests**
+
+- **`test/`**
+  - Directory containing test cases for various components of the application using Python's `unittest` framework.
+
+
+#### Dependencies and Libraries:
+
+- **cclib**: For parsing computational chemistry output files.
+- **orbkit**: For processing and analyzing electronic wave functions.
+- **Mayavi**: For 3D visualization of molecular structures and properties.
+- Additional Python libraries such as **NumPy**, **SciPy**, **Matplotlib**, and **Pandas** may be utilized for numerical operations, data handling, and plotting. For report generation, libraries like **Python-docx** or **ReportLab** could be integrated to create well-formatted documents.
+
