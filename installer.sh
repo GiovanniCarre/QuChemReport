@@ -1,6 +1,9 @@
 #!/bin/bash
 
 set -e
+if conda info --envs | grep -q "^quchemenv"; then
+  conda remove -n quchemenv --all -y
+fi
 conda create -n quchemenv python=3.8.0 numpy=1.19.5 scipy=1.9.3 scikit-learn=0.23.2 -c conda-forge -y
 source ~/miniconda3/etc/profile.d/conda.sh
 conda activate quchemenv
