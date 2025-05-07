@@ -5,3 +5,9 @@
 #Fichiers de lib
 orbkit/
 Miniconda3-latest-Linux-x86_64.sh
+
+
+#Fichiers générés
+*.png
+QuChemReport_full_report*
+UV-*
