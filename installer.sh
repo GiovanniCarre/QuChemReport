@@ -1,6 +1,8 @@
 #!/bin/bash
 
 set -e
+rm -rf ~/miniconda3/envs/quchemenv
+
 if conda info --envs | grep -q "^quchemenv"; then
   conda remove -n quchemenv --all -y
 fi
