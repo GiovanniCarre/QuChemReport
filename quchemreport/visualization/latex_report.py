@@ -10,9 +10,8 @@ import numpy as np
 
 from pylatex import Document, Tabular, MultiColumn, NoEscape
 from pylatex.utils import escape_latex
-
 from pylatex import Document, PageStyle, Head, Foot, MiniPage, Section, Subsection, Subsubsection, Command, \
-    StandAloneGraphic, MultiColumn, Tabu, LongTabu, LargeText, Tabular, MediumText, LongTable, \
+    StandAloneGraphic, MultiColumn, LongTabu, LargeText, Tabular, MediumText, LongTable, \
     LineBreak, NewPage, Tabularx, TextColor, simple_page_number, Table, Math
 from pylatex.utils import italic, bold, NoEscape
 from pylatex.package import Package
