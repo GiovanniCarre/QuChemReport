@@ -5,10 +5,13 @@ import sys
 import os
 import json
 from PIL import Image
+
 import numpy as np
 
+from pylatex import Document, Tabular, MultiColumn, NoEscape
+from pylatex.utils import escape_latex
 from pylatex import Document, PageStyle, Head, Foot, MiniPage, Section, Subsection, Subsubsection, Command, \
-    StandAloneGraphic, MultiColumn, Tabu, LongTabu, LargeText, Tabular, MediumText, LongTable, \
+    StandAloneGraphic, MultiColumn, LongTabu, LargeText, Tabular, MediumText, LongTable, \
     LineBreak, NewPage, Tabularx, TextColor, simple_page_number, Table, Math
 from pylatex.utils import italic, bold, NoEscape
 from pylatex.package import Package
@@ -125,7 +128,7 @@ def json2latex(args, json_list, data, mode="clean"):
                 figure_one_col(doc, nomPng, caption="Chemical structure diagram with atomic numbering.")
     
         
-        with doc.create(LongTabu("X[1,l] X[4,l]")) as mol_table:
+        with doc.create(Tabularx("|l X|")) as mol_table:
             inchi = (data_ref["molecule"]["inchi"]).rstrip().split("=")[-1]
             mol_table.add_row(['Directory name', dirname ])
             mol_table.add_row(['Formula', data_ref["molecule"]["formula"] ])
@@ -137,11 +140,11 @@ def json2latex(args, json_list, data, mode="clean"):
                 mol_table.add_row(['InChI'  , inchi ])
                 if (len(data_ref["molecule"]["smi"]) < 80):
                     mol_table.add_row(['SMILES' , data_ref["molecule"]["smi"] ])
-    
-    ### section 2 : computational details Common for all report types   
+
+    ### section 2 : computational details Common for all report types
     #########################################
     with doc.create(Section('COMPUTATIONAL DETAILS')) :
-        with doc.create(LongTabu("X[3,l] X[1,l] X[1,l]")) as param_table :
+        with doc.create(Tabularx("|l X| X|")) as param_table:
             software = data_ref["comp_details"]["general"]["package"]
             try : param_table.add_row(['Software'  , 
                                  data_ref["comp_details"]["general"]["package"], '(' + 
@@ -244,7 +247,7 @@ def json2latex(args, json_list, data, mode="clean"):
     ### section 3 : results
     #########################################
     with doc.create(Section('RESULTS')) : 
-        with doc.create(LongTabu("X[3,l] X[1,l] X[1,l]")) as res_table :
+        with doc.create(Tabularx("|l X| X|")) as res_table:
             #Common results / wavefunction :
             res_table.add_row(['Total molecular energy', "%.5f hartrees" %
                                      data_ref["results"]["wavefunction"]["total_molecular_energy"], " " ])
@@ -865,15 +868,15 @@ def json2latex(args, json_list, data, mode="clean"):
                             tableau.add_hline()                   
                     else:
                         with doc.create(Tabular('rrrrrrrrrp{6cm}')) as tableau :
-                            row_cells = [MultiColumn(10, align='c', 
+                            row_cells = [MultiColumn(10, align='c',
                                                      data="Table. Results concerning the calculated mono-electronic optimization excitation")]
                             tableau.add_row(row_cells)
-                            tableau.add_row([ "E.S.", "Symmetry", " nm ", NoEscape(r"cm$^{-1}$") , 
+                            tableau.add_row([ "E.S.", "Symmetry", " nm ", NoEscape(r"cm$^{-1}$") ,
                                              italic("f"), "R", NoEscape(r"$\Lambda$"), NoEscape(r"d$_{CT}$"),  NoEscape(r"q$_{CT}$"), "Excitation description in %"])
                             tableau.add_hline()
                             try : etr_i = json_list[i]["results"]["excited_states"]["et_rot"][emi_index]
                             except KeyError :
-                                etr_i = "N/A" 
+                                etr_i = "N/A"
                             trans = json_list[i]["results"]["excited_states"]["et_transitions"][emi_index]
                             # Form the string description of the escitation. Based on MO init -> MO end (%coeff)
                             CIS = " "
@@ -896,16 +899,16 @@ def json2latex(args, json_list, data, mode="clean"):
                                 if len(homo_ind) == 1: # Restricted calculation Spin is omitted
                                     CIS += str(ST[0][0]+1) +"->" + str(ST[1][0]+1) + " (" + str(coeff) + ") "
                             tableau.add_row([(2),
-                                             json_list[i]["results"]["excited_states"]["et_sym"][emi_index], 
+                                             json_list[i]["results"]["excited_states"]["et_sym"][emi_index],
                                              "%d " % et_nm[emi_index] ,
-                                             "%d " % emi_energy, 
+                                             "%d " % emi_energy,
                                              "%.3f" % json_list[i]["results"]["excited_states"]["et_oscs"][emi_index],
                                              "%s" %  etr_i, #"%.3f" % etr_i, ToDo NOT working when et rot  = N/A
                                              "%.2f" %  json_list[i]["results"]["excited_states"]["Tozer_lambda"][emi_index],
                                              "%.2f" %  json_list[i]["results"]["excited_states"]["d_ct"][emi_index],
                                              "%.2f" %  json_list[i]["results"]["excited_states"]["q_ct"][emi_index],
                                              # trying to reduce CIS size size it can too large too fit in the page
-                                             "%s" %  CIS 
+                                             "%s" %  CIS
                                               ])
                             tableau.add_hline()
                     doc.append(NoEscape(r'\end{center}'))  
