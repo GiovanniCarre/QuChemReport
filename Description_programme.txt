@@ -1,6 +1,6 @@
 ### QuChemReport Software Architecture
 
-**QuChemReport** is designed as a comprehensive solution for computational chemists to automate the process of reading, analyzing, and reporting molecular calculation results (logs) from various molecular computational chemistry softwares. Two use cases have been thought. Either a user provides a list of logs and ask for the quality of each and the conformity of the ensemble; or a user provides a list of logs and asks for a report. The report will be produced if the quality and conformity cecks are passed.  The architecture integrates specialized tools and libraries to handle specific aspects of the workflow, from data input and processing to visualization and report generation.
+**QuChemReport** is designed as a comprehensive solution for computational chemists to automate the process of reading, analyzing, and reporting molecular calculation results (logs) from various molecular computational chemistry softwares. Two use cases have been thought. Either a user provides a list of logs and ask for the quality of each and the conformity of the ensemble; or a user provides a list of logs and asks for a report. The report will be produced if the quality and conformity checks are passed.  The architecture integrates specialized tools and libraries to handle specific aspects of the workflow, from data input and processing to visualization and report generation.
 
 #### C4 Containers:
 
