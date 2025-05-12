@@ -1,6 +1,9 @@
 *.idea
 
 
+#Profiles
+/profiles/*.env
+/profiles/*.json
 
 #Fichiers de lib
 orbkit/

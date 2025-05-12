@@ -13,7 +13,6 @@ fi
 conda config --add channels conda-forge
 conda config --set channel_priority strict
 
-
 conda create -n "$ENV_NAME" \
   python=3.8 \
   numpy=1.21.6 \
@@ -34,20 +33,20 @@ pip install \
   cclib==1.8.1 \
   Pillow==8.1.2 \
   pylatex==1.4.1 \
-  cython==0.29.21
+  cython==0.29.21 \
+  python-dotenv
+
 
 #dependences (pour orbkit et mayavi)
 sudo apt update
 sudo apt install -y python3-dev cython3 libhdf5-dev gcc g++ git
 
-
-#clone d'orbkit
+#clone d'orbkit pour l'installer
 cd "$(dirname "$0")"
 rm -rf orbkit
 git clone https://github.com/orbkit/orbkit.git
 cd orbkit
 pip install .
 cd ..
-
 
 python3 main.py examples/H2O_TD.log examples/H2O_OPT.log
