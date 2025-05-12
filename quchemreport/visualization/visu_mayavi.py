@@ -100,9 +100,9 @@ def topo(j_data, file_name=None, size=(width,height)):
         mlab.text3d(P[0]+ 0.1, P[1] + 0.1, P[2] + 0.3, label + str(i + 1), color=(0,0,0), scale=0.2, figure=figure)
     if file_name is not None:
         figure = _set_cam(figure, "cam1")
-        mlab.savefig("{}-TOPOLOGY.png".format(file_name), figure=figure, size=size)
+        mlab.savefig("temp/{}-TOPOLOGY.png".format(file_name), figure=figure, size=size)
         figure = _set_cam(figure, "cam2")
-        mlab.savefig("{}-TOPOLOGY_cam2.png".format(file_name), figure=figure, size=size)        
+        mlab.savefig("temp/{}-TOPOLOGY_cam2.png".format(file_name), figure=figure, size=size)
     mlab.close()
 
 def viz_MO(data, X, Y, Z, j_data, file_name=None, labels=None, size=(width,height)):
@@ -132,9 +132,9 @@ def viz_MO(data, X, Y, Z, j_data, file_name=None, labels=None, size=(width,heigh
         MOn = mlab.pipeline.iso_surface(MO_data, figure=figure, contours=[ Cutoffn ], color=colors["NEG"], opacity=surf_opacity)
         if file_name is not None:
             figure = _set_cam(figure, "cam1")
-            mlab.savefig("{}-MO-{}.png".format(file_name, labels[i] if labels is not None else i), figure=figure, size=size)
+            mlab.savefig("temp/{}-MO-{}.png".format(file_name, labels[i] if labels is not None else i), figure=figure, size=size)
             figure = _set_cam(figure, "cam2")
-            mlab.savefig("{}-MO-{}_cam2.png".format(file_name, labels[i] if labels is not None else i), figure=figure, size=size)
+            mlab.savefig("temp/{}-MO-{}_cam2.png".format(file_name, labels[i] if labels is not None else i), figure=figure, size=size)
         MO_data.remove()
         MOp.remove()
         MOn.remove()
@@ -167,19 +167,19 @@ def viz_EDD(data, X, Y, Z, j_data, et_sym, file_name=None, labels=None, size=(wi
         if file_name is not None:
             if 'Singlet' in et_sym:
                 figure = _set_cam(figure, "cam1")
-                mlab.savefig("{}-EDD-S{}.png".format(file_name, labels[i] if labels is not None else i), figure=figure, size=size)
+                mlab.savefig("temp/{}-EDD-S{}.png".format(file_name, labels[i] if labels is not None else i), figure=figure, size=size)
                 figure = _set_cam(figure, "cam2")
-                mlab.savefig("{}-EDD-S{}_cam2.png".format(file_name, labels[i] if labels is not None else i), figure=figure, size=size)
+                mlab.savefig("temp/{}-EDD-S{}_cam2.png".format(file_name, labels[i] if labels is not None else i), figure=figure, size=size)
             elif 'Triplet' in et_sym:
                 figure = _set_cam(figure, "cam1")
-                mlab.savefig("{}-EDD-T{}.png".format(file_name, labels[i] if labels is not None else i), figure=figure, size=size)
+                mlab.savefig("temp/{}-EDD-T{}.png".format(file_name, labels[i] if labels is not None else i), figure=figure, size=size)
                 figure = _set_cam(figure, "cam2")
-                mlab.savefig("{}-EDD-S{}_cam2.png".format(file_name, labels[i] if labels is not None else i), figure=figure, size=size)
+                mlab.savefig("temp/{}-EDD-S{}_cam2.png".format(file_name, labels[i] if labels is not None else i), figure=figure, size=size)
             else:
                 figure = _set_cam(figure, "cam1")
-                mlab.savefig("{}-EDD-{}.png".format(file_name, labels[i] if labels is not None else i), figure=figure, size=size)
+                mlab.savefig("temp/{}-EDD-{}.png".format(file_name, labels[i] if labels is not None else i), figure=figure, size=size)
                 figure = _set_cam(figure, "cam2")
-                mlab.savefig("{}-EDD-{}_cam2.png".format(file_name, labels[i] if labels is not None else i), figure=figure, size=size)
+                mlab.savefig("temp/{}-EDD-{}_cam2.png".format(file_name, labels[i] if labels is not None else i), figure=figure, size=size)
         D_data.remove()
         Dp.remove()
         Dn.remove()
@@ -217,19 +217,19 @@ def viz_Oif(data, X, Y, Z, j_data, et_sym, file_name=None, labels=None, size=(wi
         if file_name is not None:
             if 'Singlet' in et_sym:
                 figure = _set_cam(figure, "cam1")
-                mlab.savefig("{}-Oif-S{}.png".format(file_name, labels[i] if labels is not None else i), figure=figure, size=size)
+                mlab.savefig("temp/{}-Oif-S{}.png".format(file_name, labels[i] if labels is not None else i), figure=figure, size=size)
                 figure = _set_cam(figure, "cam2")
-                mlab.savefig("{}-Oif-S{}_cam2.png".format(file_name, labels[i] if labels is not None else i), figure=figure, size=size)
+                mlab.savefig("temp/{}-Oif-S{}_cam2.png".format(file_name, labels[i] if labels is not None else i), figure=figure, size=size)
             elif 'Triplet' in et_sym:
                 figure = _set_cam(figure, "cam1")
-                mlab.savefig("{}-Oif-T{}.png".format(file_name, labels[i] if labels is not None else i), figure=figure, size=size)
+                mlab.savefig("temp/{}-Oif-T{}.png".format(file_name, labels[i] if labels is not None else i), figure=figure, size=size)
                 figure = _set_cam(figure, "cam2")
-                mlab.savefig("{}-Oif-T{}_cam2.png".format(file_name, labels[i] if labels is not None else i), figure=figure, size=size)
+                mlab.savefig("temp/{}-Oif-T{}_cam2.png".format(file_name, labels[i] if labels is not None else i), figure=figure, size=size)
             else:
                 figure = _set_cam(figure, "cam1")
-                mlab.savefig("{}-Oif-{}.png".format(file_name, labels[i] if labels is not None else i), figure=figure, size=size)
+                mlab.savefig("temp/{}-Oif-{}.png".format(file_name, labels[i] if labels is not None else i), figure=figure, size=size)
                 figure = _set_cam(figure, "cam2")
-                mlab.savefig("{}-Oif-{}_cam2.png".format(file_name, labels[i] if labels is not None else i), figure=figure, size=size)
+                mlab.savefig("temp/{}-Oif-{}_cam2.png".format(file_name, labels[i] if labels is not None else i), figure=figure, size=size)
         O_data.remove()
         Op.remove()
         On.remove()
@@ -260,19 +260,19 @@ def viz_dip(data, j_data, et_sym, file_name=None, labels=None, size=(width,heigh
     if file_name is not None:
         if 'Singlet' in et_sym:
             figure = _set_cam(figure, "cam1")
-            mlab.savefig("{}-DIP-S{}.png".format(file_name, labels[0]), figure=figure, size=size)
+            mlab.savefig("temp/{}-DIP-S{}.png".format(file_name, labels[0]), figure=figure, size=size)
             figure = _set_cam(figure, "cam2")
-            mlab.savefig("{}-DIP-S{}_cam2.png".format(file_name, labels[0]), figure=figure, size=size)
+            mlab.savefig("temp/{}-DIP-S{}_cam2.png".format(file_name, labels[0]), figure=figure, size=size)
         elif 'Triplet' in et_sym:
             figure = _set_cam(figure, "cam1")
-            mlab.savefig("{}-DIP-T{}.png".format(file_name, labels[0]), figure=figure, size=size)
+            mlab.savefig("temp/{}-DIP-T{}.png".format(file_name, labels[0]), figure=figure, size=size)
             figure = _set_cam(figure, "cam2")
-            mlab.savefig("{}-DIP-T{}_cam2.png".format(file_name, labels[0]), figure=figure, size=size)
+            mlab.savefig("temp/{}-DIP-T{}_cam2.png".format(file_name, labels[0]), figure=figure, size=size)
         else:
             figure = _set_cam(figure, "cam1")
-            mlab.savefig("{}-DIP-{}.png".format(file_name, labels[0]), figure=figure, size=size)
+            mlab.savefig("temp/{}-DIP-{}.png".format(file_name, labels[0]), figure=figure, size=size)
             figure = _set_cam(figure, "cam2")
-            mlab.savefig("{}-DIP-{}_cam2.png".format(file_name, labels[0]), figure=figure, size=size)
+            mlab.savefig("temp/{}-DIP-{}_cam2.png".format(file_name, labels[0]), figure=figure, size=size)
 
     mlab.clf(figure=figure)
             
@@ -341,9 +341,9 @@ def viz_Potential(r_data, V_data, X, Y, Z, j_data, file_name=None, size=(width,h
     surf.module_manager.scalar_lut_manager.lut.table = turbo_lut
     if file_name is not None:
         figure = _set_cam(figure, "cam1")
-        mlab.savefig("{}-MEP.png".format(file_name), figure=figure, size=size)
+        mlab.savefig("temp/{}-MEP.png".format(file_name), figure=figure, size=size)
         figure = _set_cam(figure, "cam2")
-        mlab.savefig("{}-MEP_cam2.png".format(file_name), figure=figure, size=size)
+        mlab.savefig("temp/{}-MEP_cam2.png".format(file_name), figure=figure, size=size)
 
     # Case with a fixed scale
     figure_fixed = _init_scene(j_data)
@@ -366,9 +366,9 @@ def viz_Potential(r_data, V_data, X, Y, Z, j_data, file_name=None, size=(width,h
     surf.module_manager.scalar_lut_manager.lut.table = turbo_lut
     if file_name is not None:
         figure_fixed = _set_cam(figure_fixed, "cam1")
-        mlab.savefig("{}-MEP_fixed.png".format(file_name), figure=figure_fixed, size=size)
+        mlab.savefig("temp/{}-MEP_fixed.png".format(file_name), figure=figure_fixed, size=size)
         figure_fixed = _set_cam(figure_fixed, "cam2")
-        mlab.savefig("{}-MEP_fixed_cam2.png".format(file_name), figure=figure_fixed, size=size)
+        mlab.savefig("temp/{}-MEP_fixed_cam2.png".format(file_name), figure=figure_fixed, size=size)
 
 def viz_Fukui(data, X, Y, Z, j_data, file_name=None, labels=None, size=(width,height)):
     u"""Visualizes the fukui density differences for the molecule.
@@ -400,9 +400,9 @@ def viz_Fukui(data, X, Y, Z, j_data, file_name=None, labels=None, size=(width,he
     
     if file_name is not None:
         figure = _set_cam(figure, "cam1")
-        mlab.savefig("{}-fukui-{}.png".format(file_name, labels), figure=figure, size=size)
+        mlab.savefig("temp/{}-fukui-{}.png".format(file_name, labels), figure=figure, size=size)
         figure = _set_cam(figure, "cam2")
-        mlab.savefig("{}-fukui-{}_cam2.png".format(file_name, labels), figure=figure, size=size)
+        mlab.savefig("temp/{}-fukui-{}_cam2.png".format(file_name, labels), figure=figure, size=size)
     Fp.remove()
     Fn.remove()
 
@@ -435,9 +435,9 @@ def viz_Fdual(data, X, Y, Z, j_data, file_name=None, size=(width,height)):
 
     if file_name is not None:
         figure = _set_cam(figure, "cam1")
-        mlab.savefig("{}-Fdual.png".format(file_name), figure=figure, size=size)
+        mlab.savefig("temp/{}-Fdual.png".format(file_name), figure=figure, size=size)
         figure = _set_cam(figure, "cam2")
-        mlab.savefig("{}-Fdual_cam2.png".format(file_name), figure=figure, size=size)
+        mlab.savefig("temp/{}-Fdual_cam2.png".format(file_name), figure=figure, size=size)
         # np.save("{}-Fdual.npy".format(file_name), data)
     Fp.remove()
     Fn.remove()

@@ -85,8 +85,8 @@ def jobs(args, jf, data):
                         print("Unrestricted calculation detected")
                         MO_list_alpha = [HO_ind[0]-1, HO_ind[0], HO_ind[0]+1, HO_ind[0]+2]
                         MO_labels_alpha = ['homo-1_alpha','homo_alpha', 'lumo_alpha', 'lumo+1_alpha'] 
-                        if (restart == 1) and (os.path.isfile("img-MO-homo-1_alpha.png")) and (os.path.isfile("img-MO-homo_alpha.png")) \
-                                          and (os.path.isfile("img-MO-lumo_alpha.png")) and (os.path.isfile("img-MO-lumo+1_alpha.png")):
+                        if (restart == 1) and (os.path.isfile("temp/img-MO-homo-1_alpha.png")) and (os.path.isfile("temp/img-MO-homo_alpha.png")) \
+                                          and (os.path.isfile("temp/img-MO-lumo_alpha.png")) and (os.path.isfile("temp/img-MO-lumo+1_alpha.png")):
                             print("Alpha Molecular orbitals pictures already done!")
                         else:                                   
                             ## Calculations of MO
@@ -97,8 +97,8 @@ def jobs(args, jf, data):
                         # Unrestricted calculation: now treat the beta orbitals
                         MO_list_beta = [HO_ind[1]-1, HO_ind[1], HO_ind[1]+1, HO_ind[1]+2] 
                         MO_labels_beta = ['homo-1_beta','homo_beta', 'lumo_beta', 'lumo+1_beta'] 
-                        if (restart == 1) and (os.path.isfile("img-MO-homo-1_beta.png")) and (os.path.isfile("img-MO-homo_beta.png")) \
-                                          and (os.path.isfile("img-MO-lumo_beta.png")) and (os.path.isfile("img-MO-lumo+1_beta.png")):
+                        if (restart == 1) and (os.path.isfile("temp/img-MO-homo-1_beta.png")) and (os.path.isfile("temp/img-MO-homo_beta.png")) \
+                                          and (os.path.isfile("temp/img-MO-lumo_beta.png")) and (os.path.isfile("temp/img-MO-lumo+1_beta.png")):
                             print("Beta Molecular orbitals pictures already done!")
                         else:                                   
                             ## Calculations of MO
@@ -110,8 +110,8 @@ def jobs(args, jf, data):
                         #MO_list = ['homo-7', 'homo-6', 'homo-5', 'homo-4', 'homo-3' ,'homo-2','homo-1','homo', 'lumo', 'lumo+1', 'lumo+2']
                         MO_list = ['homo-1', 'homo', 'lumo', 'lumo+1']
                         MO_labels = MO_list
-                        if (restart == 1) and (os.path.isfile("img-MO-homo-1.png")) and (os.path.isfile("img-MO-homo.png")) \
-                                          and (os.path.isfile("img-MO-lumo.png")) and (os.path.isfile("img-MO-lumo+1.png")):
+                        if (restart == 1) and (os.path.isfile("temp/img-MO-homo-1.png")) and (os.path.isfile("temp/img-MO-homo.png")) \
+                                          and (os.path.isfile("temp/img-MO-lumo.png")) and (os.path.isfile("temp/img-MO-lumo+1.png")):
                             print("Molecular orbitals pictures already done!")
                         else:                                   
                             ## Calculations of MO
@@ -121,7 +121,7 @@ def jobs(args, jf, data):
                             mo_viz_done = True
 
                     # Since the electrostatic potential is a very long process. Check if the png file exist. Therefore 
-                    if (restart == 1) and (os.path.isfile("img-MEP.png")) :
+                    if (restart == 1) and (os.path.isfile("temp/img-MEP.png")) :
                         print("Electrostatic potential map already done!")
                     elif doMEP: 
                         print("Starting calculations of Molecular Electrostatic Potential Map...")
@@ -290,11 +290,11 @@ def jobs(args, jf, data):
                         out, X, Y, Z = calc_orb.TD(args, data_for_discretization, [emi_transition], grid_step=step, nproc=nproc)
                         print("EDD visualization in progress for the transition :", emi_state)
                         visu_mayavi.viz_EDD([out[0][0]], X, Y, Z, data_for_discretization, emi_sym, 
-                                                                 file_name="img-emi", labels=[emi_state]) 
+                                                                 file_name="temp/img-emi", labels=[emi_state])
                         ct_dip = out[0][2][3:]
                         data_dip = {"CTDIP" : ct_dip}
                         if (emi_rotat != 0.0):
-                            visu_mayavi.viz_dip(data_dip, data_for_discretization, emi_sym, file_name="img-emi", labels=[emi_state])
+                            visu_mayavi.viz_dip(data_dip, data_for_discretization, emi_sym, file_name="temp/img-emi", labels=[emi_state])
                         ## Returns the calculated values of the tozer_lambda, d_CT, Q_CT, Mu_CT and e- barycenter and hole barycenter to the json   
                         jf[i]["results"]["excited_states"]["Tozer_lambda"][0] = out[0][1]
                         jf[i]["results"]["excited_states"]["d_ct"][0] = out[0][2][0]

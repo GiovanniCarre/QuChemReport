@@ -25,7 +25,7 @@ def absoUV(et_energies, et_oscs, xvalues, spectrum):
     plt.minorticks_on()
     fig = plt.gcf()
     fig.set_size_inches(6, 6)
-    plt.savefig("img-UV-Abso-Spectrum.png", dpi=300)
+    plt.savefig("temp/img-UV-Abso-Spectrum.png", dpi=300)
     #plt.show()                
 
 def emiUV(et_energies, et_oscs, xvalues, spectrum):
@@ -51,7 +51,7 @@ def emiUV(et_energies, et_oscs, xvalues, spectrum):
     plt.minorticks_on()
     fig = plt.gcf()
     fig.set_size_inches(6, 6)
-    plt.savefig("img-UV-Emi-Spectrum.png", dpi=300)
+    plt.savefig("temp/img-UV-Emi-Spectrum.png", dpi=300)
     #plt.show()                
 
 
@@ -79,7 +79,7 @@ def absoCD(et_energies, et_rotats, xvalues, CDspectrum):
     plt.minorticks_on()
     fig = plt.gcf()
     fig.set_size_inches(6, 6)
-    plt.savefig("img-UV-CD-Spectrum.png", dpi=300)
+    plt.savefig("temp/img-UV-CD-Spectrum.png", dpi=300)
     #plt.show()                
 
 def emiCD(et_energies, et_rotats, xvalues, CDspectrum):
@@ -106,7 +106,7 @@ def emiCD(et_energies, et_rotats, xvalues, CDspectrum):
     plt.minorticks_on()
     fig = plt.gcf()
     fig.set_size_inches(6, 6)
-    plt.savefig("img-UV-CD-Emi-Spectrum.png", dpi=300)
+    plt.savefig("temp/img-UV-CD-Emi-Spectrum.png", dpi=300)
     #plt.show()                
 
 
@@ -127,5 +127,5 @@ def emiCD(et_energies, et_rotats, xvalues, CDspectrum):
 #            plt.plot(x,y, color='blue',linestyle="-" )
 #            fig = plt.gcf()
 #            fig.set_size_inches(11.5, 6.5)
-#            plt.savefig("img-IR_Spectrum.png", dpi=300)
+#            plt.savefig("temp/img-IR_Spectrum.png", dpi=300)
             # plt.show()

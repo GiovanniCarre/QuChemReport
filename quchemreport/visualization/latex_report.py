@@ -119,8 +119,8 @@ def json2latex(args, json_list, data, mode="clean"):
     ### section 1 : molecule description
     #########################################
     with doc.create(Section('MOLECULE')) :
-        nomPng = "img-TOPOLOGY.png"
-        nomPng2 = "img-TOPOLOGY_cam2.png"
+        nomPng = "temp/img-TOPOLOGY.png"
+        nomPng2 = "temp/img-TOPOLOGY_cam2.png"
         if (os.path.isfile(nomPng)) :
             if (os.path.isfile(nomPng2)) :
                 figure_two_col(doc, nomPng, nomPng2, caption="Chemical structure diagram with atomic numbering from two points of view.")
@@ -528,10 +528,10 @@ def json2latex(args, json_list, data, mode="clean"):
             # Test if calculation is unrestricted (alpha and beta spin electrons)
             if len(homo_ind) == 2:
                 # Unrestricted calculation: treat the alpha orbitals first
-                nomPng = "img-MO-homo_alpha.png"
-                nomPng2 = "img-MO-homo_beta.png"                                                        
-                nomPng3 = "img-MO-lumo_alpha.png"
-                nomPng4 = "img-MO-lumo_beta.png"                                                        
+                nomPng = "temp/img-MO-homo_alpha.png"
+                nomPng2 = "temp/img-MO-homo_beta.png"
+                nomPng3 = "temp/img-MO-lumo_alpha.png"
+                nomPng4 = "temp/img-MO-lumo_beta.png"
                 if (os.path.isfile(nomPng)) :
                     if (os.path.isfile(nomPng2)) :
                         figure_two_col(doc, nomPng, nomPng2, caption="Representation of the HOMO of spin alpha (left) and spin beta (right).")
@@ -542,10 +542,10 @@ def json2latex(args, json_list, data, mode="clean"):
                         figure_two_col(doc, nomPng, nomPng3, caption="Representation of the Frontier Molecular Orbitals HOMO (left) and LUMO (right) of spin alpha.")
             # For restricted calculation print HOMO and LUMO and use two cameras instead
             else:
-                nomPng = "img-MO-homo.png"
-                nomPng2 = "img-MO-homo_cam2.png"                                                        
-                nomPng3 = "img-MO-lumo.png"
-                nomPng4 = "img-MO-lumo_cam2.png"                                                        
+                nomPng = "temp/img-MO-homo.png"
+                nomPng2 = "temp/img-MO-homo_cam2.png"
+                nomPng3 = "temp/img-MO-lumo.png"
+                nomPng4 = "temp/img-MO-lumo_cam2.png"
                 if (os.path.isfile(nomPng)) :
                     if (os.path.isfile(nomPng2)) :
                         figure_two_col(doc, nomPng, nomPng2, caption="Representation of the HOMO from two points of view.")
@@ -558,10 +558,10 @@ def json2latex(args, json_list, data, mode="clean"):
         # Figures of that are only printed in full type report 
         if report_type == 'full':
             # figures of Fukui functions if calculated
-            nomPng = "img-fukui-SP_plus.png"
-            nomPng2 = "img-fukui-SP_plus_cam2.png"                                                        
-            nomPng3 = "img-fukui-SP_minus.png"
-            nomPng4 = "img-fukui-SP_minus_cam2.png"                                                        
+            nomPng = "temp/img-fukui-SP_plus.png"
+            nomPng2 = "temp/img-fukui-SP_plus_cam2.png"
+            nomPng3 = "temp/img-fukui-SP_minus.png"
+            nomPng4 = "temp/img-fukui-SP_minus_cam2.png"
             if (os.path.isfile(nomPng)) :
                 if (os.path.isfile(nomPng2)) :
                     figure_two_col(doc, nomPng, nomPng2, caption="Representation of the F+ function from two points of view. The Blue color indicate the most electrophilic regions.")
@@ -570,8 +570,8 @@ def json2latex(args, json_list, data, mode="clean"):
                             figure_two_col(doc, nomPng3, nomPng4, caption="Representation of the F- function from two points of view. The Blue color indicate the most nucleophilic regions.")
                 elif (os.path.isfile(nomPng3)) :
                     figure_two_col(doc, nomPng, nomPng3, caption="Representation of the electrophilic (left) and nucleophilic (right) fukui functions.")
-            nomPng = "img-Fdual.png"
-            nomPng2 = "img-Fdual_cam2.png"                                                        
+            nomPng = "temp/img-Fdual.png"
+            nomPng2 = "temp/img-Fdual_cam2.png"
             if (os.path.isfile(nomPng)) :
                 if (os.path.isfile(nomPng2)) :
                     figure_two_col(doc, nomPng, nomPng2, caption="Representation of the Dual descriptor from two points of view. Electrophilic and nucleophilic regions correspond to blue and white surfaces.")
@@ -580,8 +580,8 @@ def json2latex(args, json_list, data, mode="clean"):
                       caption="Representation of the Dual descriptor. Electrophilic and nucleophilic regions correspond to blue and white surfaces.")
         
             # figure with ESP
-            nomPng = "img-MEP_fixed.png"
-            nomPng2 = "img-MEP.png"                                                        
+            nomPng = "temp/img-MEP_fixed.png"
+            nomPng2 = "temp/img-MEP.png"
             if (os.path.isfile(nomPng)) :
                 if (os.path.isfile(nomPng2)) :
                     figure_two_col(doc, nomPng, nomPng2, caption="Representations of the Molecular Electrostatic Potential mapped on the electron density (cutoff value of 0.002 e-/bohr3). On the left, red, blue and green regions correspond to negative values < -0.06 a.u., positive values > 0.08 a.u. and neutral values respectively. On the right, the scale is set automatically to highlight the minimum values in red and the maximum values in blues.")
@@ -590,7 +590,7 @@ def json2latex(args, json_list, data, mode="clean"):
                     caption="Representations of the Molecular Electrostatic Potential mapped on the electron density (cutoff value of 0.002 e-/bohr3). On the left, red, blue and green regions correspond to negative values < -0.06 a.u., positive values > 0.08 a.u. and neutral values respectively.")
 
             # External picture generated by AIMAll
-            nomPng = "img-AIM-BCP-rho.png"
+            nomPng = "temp/img-AIM-BCP-rho.png"
             if (not os.path.isfile(nomPng)) :
                 print(nomPng+" not found. It can not be added to the report.\n")
             else:
@@ -763,14 +763,14 @@ def json2latex(args, json_list, data, mode="clean"):
                     doc.append(NoEscape(r'\end{center}'))
 
         # UV visible Absorption and Circular dischroism plots
-        nomPng3 = "img-UV-Abso-Spectrum.png"
+        nomPng3 = "temp/img-UV-Abso-Spectrum.png"
         if (not os.path.isfile(nomPng3)) :
             print("No PNG named "+nomPng3+" found. The spectrum can not be added to the report.\n")
         else:
             figure_one_col(doc, nomPng3, taillePng="10cm", 
                   caption="Calculated UV visible Absorption spectrum with a gaussian broadening (FWHM = 3000 cm-1)")
     
-        nomPng4 = "img-UV-CD-Spectrum.png"
+        nomPng4 = "temp/img-UV-CD-Spectrum.png"
         if (not os.path.isfile(nomPng4)) :
             print("No PNG named "+nomPng4+" found. The spectrum can not be added to the report.\n")
         else:
@@ -781,10 +781,10 @@ def json2latex(args, json_list, data, mode="clean"):
         if report_type != 'text':
 
             # figure with EDD
-            nomPng = "img-EDD-S1.png"
-            nomPng_cam2 = "img-EDD-S1_cam2.png"                                                        
-            nomPng2 = "img-EDD-S2.png"
-            nomPng2_cam2 = "img-EDD-S2_cam2.png"                                                        
+            nomPng = "temp/img-EDD-S1.png"
+            nomPng_cam2 = "temp/img-EDD-S1_cam2.png"
+            nomPng2 = "temp/img-EDD-S2.png"
+            nomPng2_cam2 = "temp/img-EDD-S2_cam2.png"
             if (os.path.isfile(nomPng)) :
                 if (os.path.isfile(nomPng_cam2)) :
                     figure_two_col(doc, nomPng, nomPng_cam2, caption="Representation of the Electron Density Difference (S1-S0) from two points of view.")
@@ -794,10 +794,10 @@ def json2latex(args, json_list, data, mode="clean"):
                 elif (os.path.isfile(nomPng2)) :
                     figure_two_col(doc, nomPng, nomPng2, caption="Representation of the Electron Density Difference (S1-S0 left) and (S2-S0 right). The excited electron and the hole regions are indicated by respectively blue and white surfaces.")
             else:
-                nomPng = "img-EDD-1.png"
-                nomPng_cam2 = "img-EDD-1_cam2.png"
-                nomPng2 = "img-EDD-2.png"
-                nomPng2_cam2 = "img-EDD-2_cam2.png"
+                nomPng = "temp/img-EDD-1.png"
+                nomPng_cam2 = "temp/img-EDD-1_cam2.png"
+                nomPng2 = "temp/img-EDD-2.png"
+                nomPng2_cam2 = "temp/img-EDD-2_cam2.png"
                 if (os.path.isfile(nomPng)) :
                     if (os.path.isfile(nomPng_cam2)) :
                         figure_two_col(doc, nomPng, nomPng_cam2, caption="Representation of the Electron Density Difference (ES1-GS) from two points of view.")
@@ -914,14 +914,14 @@ def json2latex(args, json_list, data, mode="clean"):
                     doc.append(NoEscape(r'\end{center}'))  
 
         # UV visible Emission and Circular dischroism plots
-        nomPng3 = "img-UV-Emi-Spectrum.png"
+        nomPng3 = "temp/img-UV-Emi-Spectrum.png"
         if (not os.path.isfile(nomPng3)) :
             print("No PNG named "+nomPng3+" found. The spectrum can not be added to the report.\n")
         else:
             figure_one_col(doc, nomPng3, taillePng="10cm", 
                   caption="Calculated UV visible Emission spectrum with a gaussian broadening (FWHM = 3000 cm-1)")
     
-        nomPng4 = "img-UV-CD-Emi-Spectrum.png"
+        nomPng4 = "temp/img-UV-CD-Emi-Spectrum.png"
         if (not os.path.isfile(nomPng4)) :
             print("No PNG named "+nomPng4+" found. The spectrum can not be added to the report.\n")
         else:
@@ -930,7 +930,7 @@ def json2latex(args, json_list, data, mode="clean"):
 
         if report_type != 'text':
             # figure with EDD for emission
-            nomPng = "img-emi-EDD-S1.png"
+            nomPng = "temp/img-emi-EDD-S1.png"
             if (os.path.isfile(nomPng)) :
                 figure_one_col(doc, nomPng, taillePng="10cm", 
                       caption="Representation of the Electron Density Difference (S1-GS) after optimization of the excited state. The excited electron and the hole regions are indicated by respectively white and blue surfaces to ease comparison with the corresponding absorption transition.")
