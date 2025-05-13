@@ -11,6 +11,7 @@ Miniconda3-latest-Linux-x86_64.sh
 
 
 #Fichiers générés
+temp/
 *.png
 QuChemReport_full_report*
 UV-*
