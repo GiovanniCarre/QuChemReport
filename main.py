@@ -159,7 +159,8 @@ print('Discretization and visualisation process done.')
 
 # Generate tex and pdf report
 print('\nGenerating report.')
-latex_report.json2latex(args, jf, data, mode="clean")
+#latex_report.json2latex(args, jf, data, mode="clean")
+latex_report.json2docx(args, jf, data, mode="clean")
 
 
 
