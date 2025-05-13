@@ -21,6 +21,13 @@ from cclib.parser.utils import PeriodicTable
 from quchemreport.utils.units import nm_to_wnb
 #nm_to_wnb = 10000000.0
 
+
+from docx import Document
+from docx.shared import Inches, Pt
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+import os
+
+
 def add_row_filter(tab, l, expr='N/A'):
     if ( ((l[1].__class__ != tuple) and (l[1] != expr)) or # case 1
          ((l[1].__class__ == tuple) and np.all([elt != expr for elt in l[1]])) ) : # case 2
@@ -46,6 +53,52 @@ def figure_two_col(doc, nomPng, nomPng2, taillePng="7cm", caption="Figure"):
     doc.append(NoEscape(r'\vspace{-5mm}'))
     doc.append(NoEscape(r'\caption{' + caption + '}'))
     doc.append(NoEscape(r'\end{figure}'))
+
+
+def json2docx(args, json_list, data, mode="clean"):
+    report_type = args['mode']
+    data_ref = data['data_for_discretization']
+    job_types = data['job_types']
+    name = data_ref["molecule"]["formula"]
+    dirname = os.path.basename(os.getcwd())
+    doc = Document()
+    title = doc.add_paragraph()
+    run = title.add_run("MOLECULAR CALCULATION REPORT")
+    run.bold = True
+    title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    doc.add_paragraph("")
+    section_title = doc.add_paragraph()
+    run = section_title.add_run("1. MOLECULE")
+    run.bold = True
+    run.font.size = Pt(14)
+    section_title_format = section_title.paragraph_format
+    section_title_format.space_after = Pt(6)
+    doc.add_picture("img-TOPOLOGY.png", width=Inches(1))
+    doc.add_picture("img-TOPOLOGY_cam2.png", width=Inches(3))
+    last_paragraph = doc.paragraphs[-1]
+    last_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    caption = doc.add_paragraph("Figure 1: Chemical structure diagram with atomic numbering from two points of view.")
+    caption.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    table = doc.add_table(rows=7, cols=2)
+    table.style = 'Table Grid'
+    inchi = (data_ref["molecule"]["inchi"]).rstrip().split("=")[-1]
+    t = [
+        ["Directory name", dirname],
+        ["Formula", data_ref["molecule"]["formula"]],
+        ["Charge", data_ref["molecule"]["charge"]],
+        ["Spin multiplicity", data_ref["molecule"]["multiplicity"]]]
+    if report_type == 'full':
+        t.append(["Monoisotopic mass", "%.5f Da" % data_ref["molecule"]["monoisotopic_mass"]])
+        t.append(["InChI", inchi])
+        if (len(data_ref["molecule"]["smi"]) < 80):
+            t.append(["SMILES", data_ref["molecule"]["smi"]])
+    for i in range(len(t)):
+        row = table.rows[i]
+        print("row", row)
+        row.cells[0].text = str(t[i][0])
+        row.cells[1].text = str(t[i][1])
+    doc.save("test.docx")
+
 
 
 def json2latex(args, json_list, data, mode="clean"):
