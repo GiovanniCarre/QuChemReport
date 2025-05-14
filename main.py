@@ -48,7 +48,7 @@ from dotenv import dotenv_values
 
 from quchemreport.parser.scanlog import process_logfile_list
 from quchemreport.parser import conformity
-from quchemreport.visualization import visualization, latex_report
+from quchemreport.visualization import visualization, latex_report, docx_report
 
 nproc = psutil.cpu_count(logical=False)
 availableMem = int(0.9*psutil.virtual_memory().available / 1e+9)
@@ -160,7 +160,7 @@ print('Discretization and visualisation process done.')
 # Generate tex and pdf report
 print('\nGenerating report.')
 #latex_report.json2latex(args, jf, data, mode="clean")
-latex_report.json2docx(args, jf, data, mode="clean")
+docx_report.json2docx(args, jf, data, mode="clean")
 
 
 
