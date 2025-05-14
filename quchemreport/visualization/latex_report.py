@@ -22,7 +22,6 @@ from quchemreport.utils.units import nm_to_wnb
 #nm_to_wnb = 10000000.0
 
 
-from docx import Document
 import os
 
 
