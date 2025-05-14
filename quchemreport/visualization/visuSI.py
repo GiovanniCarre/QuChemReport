@@ -174,10 +174,10 @@ def jobsSI(jf, job_types, nres_noES, charges, charge_ref, discret_proc, mo_viz_d
                         if restart == 0 :
                             print("EDD visualization in progress for the transition(s):", k)
                             visu_mayavi.viz_EDD([out[k][0]], X, Y, Z, data_for_discretization, et_sym[k], 
-                                                                 file_name="img", labels=[k+1]) 
+                                                                 file_name="img", labels=[k+1])
                             if (len(et_rotats) > 0):
                                 visu_mayavi.viz_BARY([out[k][2][3:]], data_for_discretization, et_sym[k],
-                                                          file_name="img", labels=[k+1]) 
+                                                          file_name="img", labels=[k+1])
                         ## Returns the calculated values of the tozer_lambda, d_CT, Q_CT, Mu_CT and e- barycenter and hole barycenter to the json   
                         jf[i]["results"]["excited_states"]["Tozer_lambda"][k] = out[k][1]
                         jf[i]["results"]["excited_states"]["d_ct"][k] = out[k][2][0]
@@ -219,10 +219,10 @@ def jobsSI(jf, job_types, nres_noES, charges, charge_ref, discret_proc, mo_viz_d
                     out, X, Y, Z = calc_orb.TD(data_for_discretization, [emi_transition], grid_step=step, nproc=nproc)
                     print("EDD visualization in progress for the transition :", emi_state)
                     visu_mayavi.viz_EDD([out[0][0]], X, Y, Z, data_for_discretization, emi_sym, 
-                                                             file_name="temp/img-emi", labels=[emi_state])
+                                                             file_name="img-emi", labels=[emi_state])
                     if (emi_rotat != 0.0):
                         visu_mayavi.viz_BARY([out[0][2][3:]], data_for_discretization, emi_sym,
-                                                      file_name="temp/img-emi", labels=[emi_state])
+                                                      file_name="img-emi", labels=[emi_state])
                     ## Returns the calculated values of the tozer_lambda, d_CT, Q_CT, Mu_CT and e- barycenter and hole barycenter to the json   
                     jf[i]["results"]["excited_states"]["Tozer_lambda"][0] = out[0][1]
                     jf[i]["results"]["excited_states"]["d_ct"][0] = out[0][2][0]
