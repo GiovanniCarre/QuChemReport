@@ -31,10 +31,11 @@ pip install \
   requests==2.25.1 \
   psutil==5.8.0 \
   cclib==1.8.1 \
-  Pillow==8.1.2 \
+  Pillow==10.4.0 \
   pylatex==1.4.1 \
   cython==0.29.21 \
-  python-dotenv
+  python-dotenv==1.0.1 \
+  python-docx==1.1.2
 
 
 #dependences (pour orbkit et mayavi)
