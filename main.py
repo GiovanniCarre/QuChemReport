@@ -58,32 +58,14 @@ pre_parser.add_argument('logfiles', type=str, nargs='+')
 pre_parser.add_argument('--profile', type=str, help='Use a profile for predefined arguments')
 pre_args, remaining_argv = pre_parser.parse_known_args()
 
-defaults = {}
-if pre_args.profile:
-    profile_path = os.path.join('profiles', pre_args.profile)
-    if os.path.isfile(profile_path + '.env'):
-        defaults = dotenv_values(profile_path + '.env')
-    elif os.path.isfile(profile_path + '.json'):
-        with open(profile_path + '.json') as f:
-            defaults = json.load(f)
-    else:
-        print(f"Profile {pre_args.profile} not found at location profiles/{pre_args.profile}.")
-        sys.exit(1)
-
 # Arguments parsing
-argparser = argparse.ArgumentParser(
-    description='Start QuChemReport',
-    parents=[pre_parser],
-    conflict_handler='resolve'
-)
-argparser.set_defaults(**defaults)
+argparser = argparse.ArgumentParser(description='Start QuChemReport')
 
 argparser.add_argument('logfiles', type=str, nargs='+',
                        help='The JSON or log files to include in the report')
 argparser.add_argument('--restart', '--r', action='store_const', const=1, default=0,
                        help='Restart mode. Images won\'t be regenerated if they already exist.')
 
-argparser.add_argument('--profile', type=str, help='Use a profile for predefined arguments')
 argparser.add_argument('--nproc', '--n', type=int, default=nproc,
                        help='Allocatd cores for discretization process.')
 argparser.add_argument('--mem', '--m', type=int, default=availableMem,
@@ -91,7 +73,7 @@ argparser.add_argument('--mem', '--m', type=int, default=availableMem,
 argparser.add_argument('--mode', type=str.lower, default='full', choices=['full', 'si','text'],
                        help='Report verbosity.')
 argparser.add_argument('--MEP', action='store_true',
-                       help='Generate Moxlecular Electrostatic Potential images (RAM expensive!)')
+                       help='Generate Molecular Electrostatic Potential images (RAM expensive!)')
 argparser.add_argument('--noMO', action='store_true',
                        help='Do not generate Molecular Orbitals images (RAM expensive!)')
 argparser.add_argument('--noEDD', action='store_true',
@@ -99,6 +81,7 @@ argparser.add_argument('--noEDD', action='store_true',
 argparser.add_argument('--verbose', '--v', action='store_true',
                        help='Verbosity level')
 args = vars(argparser.parse_args())
+
 
 verbose = args['verbose']
 restart = args['restart']
