@@ -7,7 +7,6 @@ import os
 import sys
 import math
 import numpy as np
-import resource
 from PIL import Image, ImageOps 
 
 from quchemreport.processing import calc_orb, TD2UVvis
