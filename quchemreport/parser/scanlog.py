@@ -589,6 +589,8 @@ def process_logfile(logfile, log_storage_path="", verbose=False, sparse=True):
 def process_logfile_list(logfilelist, log_storage_path="", verbose=False, sparse=True):
     json_list = []
     log_files = []
+    print("logfile : ",logfilelist)
+
     for logfile in logfilelist:
         l, j = process_logfile(logfile, 
                                log_storage_path=log_storage_path,
