@@ -54,7 +54,7 @@ def figure_two_col(doc, nomPng, nomPng2, taillePng="7cm", caption="Figure"):
 
 
 
-def json2latex(args, json_list, data, mode="clean"):
+def json2latex(config, json_list, data, mode="clean"):
     
     # 3 report types are considered. 
     # Full report have an original layout. Pretty but inappropiate for pdf2word conversion.
@@ -63,7 +63,7 @@ def json2latex(args, json_list, data, mode="clean"):
     # SI mode will also not print the Fukui values and pictures, Analysis populations, Excited states dipoles. 
     # text mode reports are the most simple ones and discard all discretization pictures and calculations
     # Based on the SI mode, we remove the FMO, EDD pictures, CDFT and Charge transfer data.
-    report_type = args['mode']
+    report_type = config.output.include.electron_density_difference.mode
     
     # Get data 
     data_ref = data['data_for_discretization']

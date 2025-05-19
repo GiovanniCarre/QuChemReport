@@ -29,8 +29,8 @@ def create_table(doc, t):
         row.cells[0].text = str(t[i][0])
         row.cells[1].text = str(t[i][1])
 
-def json2docx(args, json_list, data, mode="clean"):
-    report_type = args['mode']
+def json2docx(config, json_list, data, mode="clean"):
+    report_type = config.output.include.electron_density_difference.mode
     data_ref = data['data_for_discretization']
     job_types = data['job_types']
     name = data_ref["molecule"]["formula"]

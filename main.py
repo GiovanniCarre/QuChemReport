@@ -44,15 +44,17 @@ import tempfile
 import argparse
 import psutil
 #from scanlog.scanlog import process_logfile_list
-from dotenv import dotenv_values
 
 from quchemreport.parser.scanlog import process_logfile_list
 from quchemreport.parser import conformity
 from quchemreport.visualization import visualization, latex_report, docx_report
+from quchemreport.config.config import Config
+
+config = Config("config/default.yaml")
 
 nproc = psutil.cpu_count(logical=False)
 availableMem = int(0.9*psutil.virtual_memory().available / 1e+9)
-
+"""
 pre_parser = argparse.ArgumentParser(add_help=False)
 pre_parser.add_argument('logfiles', type=str, nargs='+')
 pre_parser.add_argument('--profile', type=str, help='Use a profile for predefined arguments')
@@ -81,14 +83,15 @@ argparser.add_argument('--noEDD', action='store_true',
 argparser.add_argument('--verbose', '--v', action='store_true',
                        help='Verbosity level')
 args = vars(argparser.parse_args())
+"""
 
-
-verbose = args['verbose']
-restart = args['restart']
-mode = args['mode']
+verbose = config.output.verbosity
+restart = config.options.restart
+mode = config.output.include.electron_density_difference.mode
 
 print('Starting QuChemReport...')
 
+os.makedirs("temp", exist_ok=True)
 tmpdirname = tempfile.mkdtemp()
 if verbose:
     print('Creating temporary directory:', tmpdirname)
@@ -121,7 +124,9 @@ if verbose:
 
 # Parsing
 print("\nParsing input files...")
-lf, jf = process_logfile_list(args['logfiles'], log_storage_path=tmpdirname, verbose=verbose, sparse=False)
+paths = [log['path'] for log in config.logfiles]
+lf, jf = process_logfile_list(paths, log_storage_path=tmpdirname, verbose=verbose, sparse=False)
+print(jf)
 # checking that jf is not empty before any processing.
 tmpdirname = tempfile.mkdtemp()
 if (len(jf)) == 0:
@@ -131,19 +136,21 @@ print(len(jf), "valid files detected.")
 
 # CONFORMITY: Uniformity tests followed by Parenting and Discretization tests
 print('\nStarting conformity tests.')
-data, job_types, nres_noES, charges, charge_ref, discret_proc, mo_viz_done, data_for_discretization = conformity.tests(args, jf)
+data, job_types, nres_noES, charges, charge_ref, discret_proc, mo_viz_done, data_for_discretization = conformity.tests(config, jf)
 
 # Generation of a single report for the conformer
 
 # Process discretization and visualization works depending on the job types
 print('\nStarting discretization and visualisation process.')
-visualization.jobs(args, jf, data)
+visualization.jobs(config, jf, data)
 print('Discretization and visualisation process done.')
 
 # Generate tex and pdf report
 print('\nGenerating report.')
-latex_report.json2latex(args, jf, data, mode="clean")
-#docx_report.json2docx(args, jf, data, mode="clean")
+if config.output.format == "latex":
+    latex_report.json2latex(config, jf, data, mode="clean")
+elif config.output.format == "docx":
+    docx_report.json2docx(config, jf, data, mode="clean")
 
 
 

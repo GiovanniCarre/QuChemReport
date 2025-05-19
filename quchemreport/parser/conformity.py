@@ -9,7 +9,7 @@
 
 import sys
 
-def tests(args, jf):
+def tests(config, jf):
 # Parameters list of logfiles and JSON data
 
     formulas =[]
@@ -28,7 +28,7 @@ def tests(args, jf):
     multiplicities_noSP = []
     charges_SP = []
 
-    verbose = args['verbose']
+    verbose = config.output.verbosity
 
     # Create list of key values for conformity tests
     for i, jsonfiles in enumerate(jf):

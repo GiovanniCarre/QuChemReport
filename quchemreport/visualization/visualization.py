@@ -31,15 +31,15 @@ def autocrop(imgfile):
     cropped=image.crop(imageBox)
     cropped.save(imgfile, fomat='PNG', dpi=(300,300))
 
-def jobs(args, jf, data):
-    
+def jobs(config, jf, data):
+
     # 3 report types are considered. 
     # Full report have an original layout. Pretty but inappropiate for pdf2word conversion.
     # Full report consider all data and needs discretization process: Full log verbosity. Orbkit calculations. 
     # SI mode will not calculate the Fukui values and pictures, Analysis populations, Excited states dipoles. 
     # text mode reports are the most simple ones and discard all discretization pictures and calculations
     # Based on the SI mode, we remove the FMO, EDD pictures, CDFT and Charge transfer data.
-    report_type = args['mode']
+    report_type = config.output.include.electron_density_difference.mode
     
     # Parameters list of logfiles and JSON data, list of job-types and key data obtained by the conformity tests.
     job_types = data['job_types']
@@ -49,11 +49,11 @@ def jobs(args, jf, data):
     discret_proc = data['discret_proc']
     mo_viz_done = data['mo_viz_done']
     data_for_discretization = data['data_for_discretization']
-    nproc = args['nproc']
-    restart = args['restart']
-    doMEP = args['MEP']
-    maxMem = args['mem'] * 1e+9
-    verbose = args['verbose']
+    nproc = config.resources.nproc
+    restart = config.options.restart
+    doMEP = config.output.include.mep_maps
+    maxMem = config.resources.memory * 1e+9
+    verbose = config.output.verbosity
     # MO list initialization
     MO_list = []
     # electronic transitions   
@@ -212,7 +212,7 @@ def jobs(args, jf, data):
                                    
                         ## Discretization of all MO used in the transitions
                         try:
-                            out, X, Y, Z = calc_orb.TD(args, data_for_discretization, et_transitions, grid_step=step, nproc=nproc)
+                            out, X, Y, Z = calc_orb.TD(config, data_for_discretization, et_transitions, grid_step=step, nproc=nproc)
                         except MemoryError :
                             sys.stderr.write('\n\nERROR: Memory Exception during discretization of MO used in the transitions\n')
                             et_transitions = []
@@ -287,7 +287,7 @@ def jobs(args, jf, data):
                     if discret_proc is True :
                         print("Calculating the emission electronic density difference.")
                         ## Discretization of all MO used in the transition
-                        out, X, Y, Z = calc_orb.TD(args, data_for_discretization, [emi_transition], grid_step=step, nproc=nproc)
+                        out, X, Y, Z = calc_orb.TD(config, data_for_discretization, [emi_transition], grid_step=step, nproc=nproc)
                         print("EDD visualization in progress for the transition :", emi_state)
                         visu_mayavi.viz_EDD([out[0][0]], X, Y, Z, data_for_discretization, emi_sym, 
                                                                  file_name="img-emi", labels=[emi_state])

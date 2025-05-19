@@ -1,5 +1,6 @@
 import os
 import json
+import sys
 import yaml
 
 
@@ -39,29 +40,44 @@ class ConfigNamespace:
     def __repr__(self):
         return f"Config({self.__dict__})"
 
+    def __str__(self):
+        """
+        Pretty YAML-like string representation of the config.
+        """
+        return yaml.dump(self.to_dict(), sort_keys=False, default_flow_style=False)
+
+    def to_string(self):
+        """
+        Returns the config as a formatted string (same as __str__).
+        """
+        return str(self)
+
 
 class Config(ConfigNamespace):
+
     """
     Load a configuration file (YAML or JSON) and allow attribute-style access.
-
-    Example usage:
-        config = Config("config.yaml")
-        print(config.output.format)
     """
-
     def __init__(self, path):
         if not os.path.exists(path):
-            raise FileNotFoundError(f"Config file '{path}' does not exist.")
+            print(f"[ERROR] Config file '{path}' does not exist.")
+            sys.exit(1)
 
-        with open(path, "r", encoding="utf-8") as f:
-            if path.endswith(".yaml") or path.endswith(".yml"):
-                data = yaml.safe_load(f)
-            elif path.endswith(".json"):
-                data = json.load(f)
-            else:
-                raise ValueError("Unsupported config file format. Use .yaml, .yml or .json")
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                if path.endswith(".yaml") or path.endswith(".yml"):
+                    data = yaml.safe_load(f)
+                elif path.endswith(".json"):
+                    data = json.load(f)
+                else:
+                    print("[ERROR] Unsupported config file format. Use .yaml, .yml or .json")
+                    sys.exit(1)
+        except Exception as e:
+            print(f"[ERROR] Failed to read config file: {e}")
+            sys.exit(1)
 
         if not isinstance(data, dict):
-            raise ValueError("Configuration file must contain a dictionary at the top level.")
+            print("[ERROR] Configuration file must contain a dictionary at the top level.")
+            sys.exit(1)
 
         super().__init__(data)
