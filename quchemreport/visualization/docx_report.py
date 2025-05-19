@@ -14,21 +14,19 @@ def add_section_title(doc, title_text):
     run.font.size = Pt(14)
     run.font.color.rgb = RGBColor(255, 255, 255)
     p_format = p.paragraph_format
-    p_format.space_after = Pt(6)
-
+    p_format.space_before = Pt(0)
+    p_format.space_after = Pt(0)
     shading_elm = OxmlElement('w:shd')
-    shading_elm.set(qn('w:fill'), '008080')  # Vert canard
+    shading_elm.set(qn('w:fill'), '009080')  # Vert canard
     p._element.get_or_add_pPr().append(shading_elm)
 
 def set_cell_border(cell, **kwargs):
     tc = cell._tc
     tcPr = tc.get_or_add_tcPr()
-
     tcBorders = tcPr.find(qn('w:tcBorders'))
     if tcBorders is None:
         tcBorders = OxmlElement('w:tcBorders')
         tcPr.append(tcBorders)
-
     for edge in ('top', 'bottom', 'start', 'end', 'insideH', 'insideV'):
         if edge in kwargs:
             edge_data = kwargs[edge]
@@ -39,17 +37,6 @@ def set_cell_border(cell, **kwargs):
                 tcBorders.append(element)
             for key in edge_data:
                 element.set(qn('w:' + key), str(edge_data[key]))
-
-def hideTableBorders(table) :
-    for row in table.rows:
-        for cell in row.cells:
-            set_cell_border(
-                cell,
-                top={"val": "single", "sz": 0, "color": "FFFFFF", "space" : 0},
-                bottom={"val": "single", "sz": 0, "color": "FFFFFF", "space" : 0},
-                start={"val": "single", "sz": 0, "color": "FFFFFF", "space" : 0},
-                end={"val": "single", "sz": 0, "color": "FFFFFF", "space" : 0}
-            )
 
 def display_vertical_lines(table, centralLines=True):
     for row in table.rows:
@@ -65,6 +52,26 @@ def display_vertical_lines(table, centralLines=True):
             elif i == len(row.cells) - 1:
                 set_cell_border(cell,end={"val": "single", "sz": 2, "color": "000000", "space" : 0})
 
+def set_vertical_line(table, index, visible):
+    color = "000000" if visible else "FFFFFF"
+    for row in table.rows:
+        if index == len(row.cells):
+            set_cell_border(row.cells[index-1], end={"val": "single", "sz": 2, "color": color, "space": 0})
+        else :
+            set_cell_border(row.cells[index], start={"val": "single", "sz": 2, "color": color, "space": 0})
+
+def set_all_cell_borders(table, visible) :
+    color = "000000" if visible else "FFFFFF"
+    for row in table.rows:
+        for cell in row.cells:
+            set_cell_border(
+                cell,
+                top={"val": "single", "sz": 0, "color": color},
+                bottom={"val": "single", "sz": 0, "color": color},
+                start={"val": "single", "sz": 0, "color": color},
+                end={"val": "single", "sz": 0, "color": color}
+            )
+
 def create_table(doc, t):
     table = doc.add_table(rows=len(t), cols=len(t[0]))
     table.style = 'Table Grid'
@@ -72,51 +79,9 @@ def create_table(doc, t):
         row = table.rows[i]
         for j in range(len(t[i])):
             row.cells[j].text = str(t[i][j])
-    hideTableBorders(table)
+    set_all_cell_borders(table, False)
     return table
 
-
-def set_all_cell_borders(table) :
-    for row in table.rows:
-        for cell in row.cells:
-            set_cell_border(
-                cell,
-                top={"val": "single", "sz": 0, "color": "FFFFFF"},
-                bottom={"val": "single", "sz": 0, "color": "FFFFFF"},
-                start={"val": "single", "sz": 0, "color": "FFFFFF"},
-                end={"val": "single", "sz": 0, "color": "FFFFFF"}
-            )
-
-
-def modify_table(table):
-    table.autofit = False
-    tbl = table._tbl
-    tblPr = tbl.tblPr
-    tblBorders = OxmlElement('w:tblBorders')
-    for border_name in ['top', 'left', 'bottom', 'right']:
-        border = OxmlElement(f'w:{border_name}')
-        border.set(qn('w:val'), 'none')  # Bordure invisible
-        border.set(qn('w:sz'), '0')
-        border.set(qn('w:space'), '0')
-        tblBorders.append(border)
-    insideH = OxmlElement('w:insideH')
-    insideH.set(qn('w:val'), 'none')  # Bordure invisible
-    insideH.set(qn('w:sz'), '0')
-    insideH.set(qn('w:space'), '0')
-    tblBorders.append(insideH)
-    insideV = OxmlElement('w:insideV')
-    insideV.set(qn('w:val'), 'single')  # Style de ligne
-    insideV.set(qn('w:sz'), '12')  # Épaisseur (8 = standard, 12 = gras)
-    insideV.set(qn('w:space'), '0')
-    insideV.set(qn('w:color'), '000000')  # Couleur noire
-    tblBorders.append(insideV)
-    tblPr.append(tblBorders)
-
-def positionImage(doc, src, pos, size):
-    paragraph = doc.add_paragraph()
-    paragraph.alignment = pos  # ou RIGHT, LEFT
-    run = paragraph.add_run()
-    run.add_picture(src, width=Inches(size))
 
 def json2docx(config, json_list, data, mode="clean"):
     report_type = config.output.include.electron_density_difference.mode
@@ -131,7 +96,7 @@ def json2docx(config, json_list, data, mode="clean"):
     title.alignment = WD_ALIGN_PARAGRAPH.CENTER
     doc.add_paragraph("")
     section_title = doc.add_paragraph()
-    run = section_title.add_run("1. MOLECULE")
+    add_section_title(doc, "1. MOLECULE")
     run.bold = True
     run.font.size = Pt(14)
     section_title_format = section_title.paragraph_format
@@ -261,19 +226,12 @@ def json2docx(config, json_list, data, mode="clean"):
                 pass
         t.append([" ", " ", " "])
 
-    table = doc.add_table(rows=1, cols=2)
-    hideTableBorders(table)
+    table = create_table(doc, t)
+    set_all_cell_borders(table, False)
     display_vertical_lines(table)
-    table0 = create_table(table.rows[0].cells[0], t)
+    set_vertical_line(table, 1, False)
     doc.add_paragraph("\nJob type: Geometry optimization")
-    t = [
-        ["test"],
-        ["test"],
-        ["test"],
-        ["test"]
-    ]
-    table1 = create_table(table.rows[0].cells[1], t)
-    table.columns[0].width = Pt(400)
-    table.columns[1].width = Pt(80)
-    table1.columns[0].width = Pt(55)
+    table.columns[0].width = Pt(200)
+    table.columns[1].width = Pt(200)
+    table.columns[2].width = Pt(80)
     doc.save("test.docx")
