@@ -30,7 +30,7 @@ logfiles:
 #    type: td
 
 quality_control:
-  method_consistency: strict  # strict | lax
+  method_consistency: strict  # strict | lax | pdf
   checks:
     formula: true
     theory: true
@@ -40,7 +40,7 @@ quality_control:
     ground_state_optimization: true
 
 output:
-  format: docx # docx | latex
+  format: latex # docx | latex
   verbosity: full # full | si | text
   include:
     computational_details: true

@@ -16,3 +16,6 @@ Miniconda3-latest-Linux-x86_64.sh
 QuChemReport_full_report*
 UV-*
 *.docx
+.~lock.*#
+*.pdf
+*.tex
