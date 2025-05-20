@@ -125,8 +125,10 @@ if verbose:
 # Parsing
 print("\nParsing input files...")
 paths = [log['path'] for log in config.logfiles]
+job_types = [[log['type'].upper()] for log in config.logfiles]
+
 lf, jf = process_logfile_list(paths, log_storage_path=tmpdirname, verbose=verbose, sparse=False)
-print(jf)
+
 # checking that jf is not empty before any processing.
 tmpdirname = tempfile.mkdtemp()
 if (len(jf)) == 0:
@@ -136,7 +138,7 @@ print(len(jf), "valid files detected.")
 
 # CONFORMITY: Uniformity tests followed by Parenting and Discretization tests
 print('\nStarting conformity tests.')
-data, job_types, nres_noES, charges, charge_ref, discret_proc, mo_viz_done, data_for_discretization = conformity.tests(config, jf)
+data, nres_noES, charges, charge_ref, discret_proc, mo_viz_done, data_for_discretization = conformity.tests(job_types, config, jf)
 
 # Generation of a single report for the conformer
 
@@ -151,6 +153,3 @@ if config.output.format == "latex":
     latex_report.json2latex(config, jf, data, mode="clean")
 elif config.output.format == "docx":
     docx_report.json2docx(config, jf, data, mode="clean")
-
-
-

@@ -9,7 +9,7 @@
 
 import sys
 
-def tests(config, jf):
+def tests(job_types, config, jf):
 # Parameters list of logfiles and JSON data
 
     formulas =[]
@@ -17,7 +17,6 @@ def tests(config, jf):
     ao_names = []
     basis_sets = []
     MO_coeff  = []
-    job_types = []
     nres = []
     charges = []
     multiplicities = []
@@ -35,8 +34,8 @@ def tests(config, jf):
         package =  jf[i]["comp_details"]["general"]["package"]
         formulas.append(jf[i]["molecule"]["formula"])
         nres.append(jf[i]["results"]["geometry"]["nuclear_repulsion_energy_from_xyz"])
-        if ((jf[i]["comp_details"]["general"]["job_type"] == ['OPT_ES']) or
-            (jf[i]["comp_details"]["general"]["job_type"] == ['FREQ_ES'])) :
+        if ((job_types[i] == ['OPT_ES']) or
+            (job_types[i] == ['FREQ_ES'])) :
             print ('Detected optimized excited state in :', jf[i]['metadata']['log_file'])
         else :
             nres_noES.append(jf[i]["results"]["geometry"]["nuclear_repulsion_energy_from_xyz"])
@@ -58,13 +57,12 @@ def tests(config, jf):
         except KeyError : 
             MO_coeff.append([])   # Problem we would like to add N/A is no MO to keep the same index hax jf[i] but test on len after   
         charges.append(jf[i]["molecule"]["charge"])
-        if (jf[i]["comp_details"]["general"]["job_type"] != ['SP'])  :
+        if job_types[i] != ['SP']:
             charges_noSP.append(jf[i]["molecule"]["charge"])
-        if (jf[i]["comp_details"]["general"]["job_type"] == ['SP'])  :
-            charges_SP.append(jf[i]["molecule"]["charge"])    
-        job_types.append(jf[i]["comp_details"]["general"]["job_type"]) 
+        if job_types[i] == ['SP']:
+            charges_SP.append(jf[i]["molecule"]["charge"])
         multiplicities.append(jf[i]["molecule"]["multiplicity"])
-        if (jf[i]["comp_details"]["general"]["job_type"] != ['SP'])  :
+        if job_types[i] != ['SP']:
             multiplicities_noSP.append(jf[i]["molecule"]["multiplicity"])
 
     # Problem in the formula: the charges appear and direct comparison fails
@@ -152,12 +150,6 @@ def tests(config, jf):
         sys.exit()
     else:
         print("\tSame multiplicity:                               ...  Test OK")
-
-    # Test on Ground State information in case of multiples log files
-    if job_types.count(['OPT']) == 0 and job_types.count(['FREQ']) == 0 and \
-       job_types.count(['FREQ', 'OPT']) == 0 and job_types.count(['FREQ', 'OPT', 'TD']) == 0:
-        print("ERROR: In a list of logfiles, one OPT or FREQ of a Ground State should be provided. Program will exit.")
-        sys.exit()
 
     
     # End of uniformity / conformity tests. 
@@ -265,7 +257,7 @@ def tests(config, jf):
             'discret_proc' : discret_proc,
             'mo_viz_done' : mo_viz_done,
             'data_for_discretization' : data_for_discretization}
-    return (data, job_types, nres_noES, charges, charge_ref, discret_proc, mo_viz_done, data_for_discretization)
+    return (data, nres_noES, charges, charge_ref, discret_proc, mo_viz_done, data_for_discretization)
 
 
 
