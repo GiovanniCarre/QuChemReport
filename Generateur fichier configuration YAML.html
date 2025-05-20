@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Générateur YAML - QuChemReport</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 2rem;
+    }
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      background: #fff;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    h2 {
+      margin-bottom: 0;
+      margin-top: 1.5em;
+    }
+    h3 {
+      margin-top: 2em;
+      margin-bottom: 0;
+    }
+    section {
+      margin-bottom: 2rem;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 0.5rem;
+    }
+    input[type="text"], input[type="number"], select {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.25rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    textarea {
+      width: 100%;
+      height: 200px;
+      margin-top: 1rem;
+    }
+    .checkbox-group {
+      display: flex;
+      flex-wrap: wrap;
+    }
+    .checkbox-group label {
+      display: block;
+      font-weight: normal;
+      width: 33%;
+      margin: 1em 5% auto 12%;
+    }
+    button {
+      display: block;
+      background: #007acc;
+      color: #fff;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 4px;
+      margin-top: 1rem;
+      cursor: pointer;
+      margin: 1em auto 1.5em auto;
+    }
+    button:hover {
+      background: #005ea1;
+    }
+    .logfile-block {
+      border: 1px dashed #ccc;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Générateur de fichier YAML QuChemReport</h1>
+  <form id="yamlForm">
+    <section>
+      <label for="common_solver">Solveur commun</label>
+      <select id="common_solver">
+        <option value="gaussian">gaussian</option>
+        <option value="orca">orca</option>
+      </select>
+    </section>
+
+    <section>
+      <h2>Fichiers log</h2>
+      <div id="logfiles"></div>
+
+      <button type="button" onclick="addLogfile()">Ajouter un fichier</button>
+    </section>
+
+    <section>
+      <h2>Contrôle qualité</h2>
+      <label for="method_consistency">Consistance méthode</label>
+      <select id="method_consistency">
+        <option value="strict">strict</option>
+        <option value="lax">lax</option>
+      </select>
+
+      <div class="checkbox-group">
+        <label><input type="checkbox" value="formula" checked> formula</label>
+        <label><input type="checkbox" value="theory" checked> theory</label>
+        <label><input type="checkbox" value="nuclear_repulsion" checked> nuclear_repulsion</label>
+        <label><input type="checkbox" value="charge" checked> charge</label>
+        <label><input type="checkbox" value="multiplicity" checked> multiplicity</label>
+        <label><input type="checkbox" value="ground_state_optimization" checked> ground_state_optimization</label>
+      </div>
+
+    </section>
+
+    <section>
+      <h2>Sortie</h2>
+      <label for="format">Format</label>
+      <select id="format">
+        <option value="html">html</option>
+        <option value="markdown">markdown</option>
+        <option value="pdf">pdf</option>
+      </select>
+
+      <label for="verbosity">Verbosité</label>
+      <select id="verbosity">
+        <option value="full">full</option>
+        <option value="si">si</option>
+        <option value="text">text</option>
+      </select>
+
+      <h3>Options d'inclusion</h3>
+
+      <div class="checkbox-group">
+        <label><input type="checkbox" id="computational_details" checked> computational_details</label>
+        <label><input type="checkbox" id="molecule_representation" checked> molecule_representation</label>
+        <label><input type="checkbox" id="mo_diagrams" checked> mo_diagrams</label>
+        <label><input type="checkbox" id="population_analysis" checked> population_analysis</label>
+        <label><input type="checkbox" id="thermo_data" checked> thermo_data</label>
+        <label><input type="checkbox" id="uv_vis_absorption" checked> uv_vis_absorption</label>
+        <label><input type="checkbox" id="uv_vis_emission" checked> uv_vis_emission</label>
+        <label><input type="checkbox" id="cd_spectrum" checked> cd_spectrum</label>
+        <label><input type="checkbox" id="fukui_functions" checked> fukui_functions</label>
+        <label><input type="checkbox" id="nmr_shifts" checked> nmr_shifts</label>
+        <label><input type="checkbox" id="mep_maps"> mep_maps</label>
+      </div>
+
+      <h3>Différences de densité électronique</h3>
+      <label><input type="checkbox" id="edd_enabled" checked> enabled</label>
+
+      <label>mode
+        <select id="edd_mode">
+          <option value="dominant_only">dominant_only</option>
+          <option value="first_n">first_n</option>
+          <option value="all_states">all_states</option>
+        </select>
+      </label>
+
+      <label>first_n <input type="number" id="edd_first_n" value="5"></label>
+    </section>
+
+    <section>
+      <h2>Caméra</h2>
+      <label>mode
+        <select id="camera_mode">
+          <option value="auto">auto</option>
+          <option value="preset">preset</option>
+          <option value="manual">manual</option>
+        </select>
+      </label>
+
+      <label>preset
+        <select id="camera_preset">
+          <option value="x">x</option>
+          <option value="y">y</option>
+          <option value="z" selected>z</option>
+        </select>
+      </label>
+      <label>view_file (null ou chemin)
+        <input type="text" id="camera_view_file" placeholder="null">
+      </label>
+    </section>
+
+    <section>
+      <h2>Ressources</h2>
+      <label>nproc <input type="number" id="nproc" value="4"></label>
+      <label>memory (GB) <input type="number" id="memory" value="8"></label>
+      <label><input type="checkbox" id="mayavi_headless" checked> mayavi_headless</label>
+    </section>
+
+    <section>
+      <h2>Logging</h2>
+      <label><input type="checkbox" id="console" checked> console</label>
+
+      <label>level
+        <select id="log_level">
+          <option value="debug">debug</option>
+          <option value="info" selected>info</option>
+          <option value="warning">warning</option>
+          <option value="error">error</option>
+        </select>
+      </label>
+    </section>
+
+    <button type="button" onclick="generateYAML()">Télécharger le YAML</button>
+
+  </form>
+</div>
+
+
+<script>
+function addLogfile(path = '', type = 'opt', excited_state = '') {
+  const container = document.createElement('div');
+  container.className = 'logfile-entry';
+  container.style.marginBottom = '8px';
+
+  container.innerHTML = `
+    <label>Chemin: <input type="text" name="logfile_path" value="${path}"></label>
+    <label>Type:
+      <select name="logfile_type">
+        <option value="opt" ${type === 'opt' ? 'selected' : ''}>opt</option>
+        <option value="freq" ${type === 'freq' ? 'selected' : ''}>freq</option>
+        <option value="td" ${type === 'td' ? 'selected' : ''}>td</option>
+        <option value="opt_es" ${type === 'opt_es' ? 'selected' : ''}>opt_es</option>
+        <option value="freq_es" ${type === 'freq_es' ? 'selected' : ''}>freq_es</option>
+        <option value="nmr" ${type === 'nmr' ? 'selected' : ''}>nmr</option>
+        <option value="sp" ${type === 'sp' ? 'selected' : ''}>sp</option>
+      </select>
+    </label>
+    <label>État excité (optionnel): <input type="text" name="excited_state" value="${excited_state}"></label>
+    <button type="button" onclick="removeLogfile(this)">Supprimer</button>
+  `;
+
+  document.getElementById('logfiles').appendChild(container);
+}
+
+function removeLogfile(button) {
+  const entry = button.parentElement;
+  entry.remove();
+}
+
+
+function generateYAML() {
+  const getVal = id => document.getElementById(id)?.value;
+  const getCheck = id => document.getElementById(id)?.checked;
+
+  const yaml = [
+    '# ==============================================================================',
+    '# QuChemReport YAML Input File',
+    '# ==============================================================================',
+    '# Controls how log files are parsed, analyzed, and turned into publication-ready',
+    '# reports. Requires outputs from quantum chemistry tools like Gaussian or Orca.',
+    '#',
+    '# INSTRUCTIONS:',
+    '# - Only edit values after colons.',
+    '# - Indent with spaces (no tabs).',
+    '# - Use true/false (without quotes) for options.',
+    '# - Any output option will be ignored if the necessary data is not present.',
+    '#',
+    '# Supported log file types: sp, opt, opt_es, freq, freq_es, td, nmr ',
+    '# ==============================================================================\n',
+    `common_solver: ${getVal('common_solver')}  # Solver used for all log files: gaussian, orca, etc.`,
+    '                         # ⚠️ All files must come from this solver.\n',
+    'logfiles:'
+  ];
+
+  const logs = document.querySelectorAll('.logfile-entry');
+  logs.forEach(block => {
+    const path = block.querySelector('input[name="logfile_path"]').value.trim();
+    const type = block.querySelector('select[name="logfile_type"]').value.trim();
+    const excited = block.querySelector('input[name="excited_state"]').value.trim();
+
+    if (path && type) {
+      yaml.push(`  - path: "${path}"`);
+      yaml.push(`    type: ${type}`);
+      if (excited) yaml.push(`    excited_state: ${excited}`);
+    }
+  });
+  yaml.push('  # type can be a single job or list: [opt, freq, td]');
+  yaml.push("  # 'solver' field is now unnecessary due to common_solver\n");
+
+  yaml.push('quality_control:');
+  yaml.push(`  method_consistency: ${getVal('method_consistency')}  # strict | lax`);
+  yaml.push('  checks:');
+  document.querySelectorAll('.checkbox-group input[type="checkbox"]').forEach(cb => {
+    if (cb.checked && cb.value) yaml.push(`    ${cb.value}: true`);
+  });
+
+  yaml.push('\noutput:');
+  yaml.push(`  format: ${getVal('format')} # html | markdown | pdf`);
+  yaml.push(`  verbosity: ${getVal('verbosity')} # full | si | text`);
+  yaml.push('  include:');
+  const ids = [
+    'computational_details','molecule_representation','mo_diagrams','population_analysis',
+    'thermo_data','uv_vis_absorption','uv_vis_emission','cd_spectrum','fukui_functions','nmr_shifts','mep_maps'
+  ];
+  ids.forEach(id => yaml.push(`    ${id}: ${getCheck(id)}`));
+  yaml.push('');
+  yaml.push('    electron_density_difference:');
+  yaml.push(`      enabled: ${getCheck('edd_enabled')}`);
+  yaml.push(`      mode: ${getVal('edd_mode')}     # dominant_only | first_n | all_states`);
+  yaml.push(`      first_n: ${getVal('edd_first_n')}`);
+
+  yaml.push('\n# CAMERA CONTROL FOR VISUALIZATION');
+  yaml.push('camera_view:');
+  yaml.push(`  mode: ${getVal('camera_mode')}           # auto = PCA-based "best view" (recommended)`);
+  yaml.push('                       # preset = static direction view (+x, +y, +z)');
+  yaml.push('                       # manual = user-defined view saved to JSON');
+  yaml.push(`  preset: ${getVal('camera_preset')}            # used only if mode = preset; values: x, y, z`);
+  yaml.push(`  view_file: ${getVal('camera_view_file') || 'null'}      # used only if mode = manual; path to a saved .json\n`);
+
+  yaml.push('resources:');
+  yaml.push(`  nproc: ${getVal('nproc')}                   # Not enforced yet`);
+  yaml.push(`  memory: ${getVal('memory')}                  # GB - not enforced yet`);
+  yaml.push(`  mayavi_headless: ${getCheck('mayavi_headless')}      # Use offscreen mode for 3D renderings\n`);
+
+  yaml.push('logging:');
+  yaml.push(`  console: ${getCheck('console')}`);
+  yaml.push(`  level: ${getVal('log_level')}                # debug | info | warning | error`);
+
+  const blob = new Blob([yaml.join('\n')], {type: 'text/yaml'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'quchemreport.yaml';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
