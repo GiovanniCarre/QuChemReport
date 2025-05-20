@@ -1,0 +1,84 @@
+# ==============================================================================
+# QuChemReport YAML Input File
+# ==============================================================================
+# Controls how log files are parsed, analyzed, and turned into publication-ready
+# reports. Requires outputs from quantum chemistry tools like Gaussian or Orca.
+#
+# INSTRUCTIONS:
+# - Only edit values after colons.
+# - Indent with spaces (no tabs).
+# - Use true/false (without quotes) for options.
+# - Any output option will be ignored if the necessary data is not present.
+#
+# Supported log file types: sp, opt, opt_es, freq, freq_es, td, nmr
+# ==============================================================================
+
+common_solver: gaussian  # Solver used for all log files: gaussian, orca, etc.
+                         # ⚠️ All files must come from this solver.
+
+logfiles:
+  - path: "./examples/H2O_OPT.log"
+    type: opt
+    # type can be a single job or list: [opt, freq, td]
+    # 'solver' field is now unnecessary due to common_solver
+#  - path: "./TD.log"
+#    type: td
+#  - path: "./OPT_ES1.log"
+#    type: opt_es
+#    excited_state: S1
+#  - path: "./TD_T.log"
+#    type: td
+
+quality_control:
+  method_consistency: strict  # strict | lax
+  checks:
+    formula: true
+    theory: true
+    nuclear_repulsion: true
+    charge: true
+    multiplicity: true
+    ground_state_optimization: true
+
+output:
+  format: docx # docx | latex
+  verbosity: full # full | si | text
+  include:
+    computational_details: true
+    molecule_representation: true
+    mo_diagrams: true
+    population_analysis: true
+    thermo_data: true
+
+    uv_vis_absorption: true
+    uv_vis_emission: true
+    cd_spectrum: true
+
+    electron_density_difference:
+      enabled: true
+      mode: dominant_only     # dominant_only | first_n | all_states
+      first_n: 5
+
+    fukui_functions: true
+    nmr_shifts: true
+    mep_maps: false
+
+# CAMERA CONTROL FOR VISUALIZATION
+camera_view:
+  mode: auto           # auto = PCA-based "best view" (recommended)
+                       # preset = static direction view (+x, +y, +z)
+                       # manual = user-defined view saved to JSON
+  preset: z            # used only if mode = preset; values: x, y, z
+  view_file: null      # used only if mode = manual; path to a saved .json
+
+resources:
+  nproc: 4                   # Not enforced yet
+  memory: 8                  # GB - not enforced yet
+  mayavi_headless: true      # Use offscreen mode for 3D renderings
+
+logging:
+  console: true
+  level: info                # debug | info | warning | error
+
+
+options:
+  restart: true

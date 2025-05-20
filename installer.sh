@@ -9,7 +9,7 @@ if conda info --envs | grep -q "^$ENV_NAME"; then
   conda remove -n "$ENV_NAME" --all -y
 fi
 
-#creation de l'environnement et priorite strict pour l'installation 
+#creation de l'environnement et priorite strict pour installation
 conda config --add channels conda-forge
 conda config --set channel_priority strict
 
@@ -20,6 +20,7 @@ conda create -n "$ENV_NAME" \
   scikit-learn=0.23.2 \
   openbabel \
   mayavi \
+  pyyaml \
   -c conda-forge -y
 
 #active environnement conda
@@ -34,7 +35,6 @@ pip install \
   Pillow==10.4.0 \
   pylatex==1.4.1 \
   cython==0.29.21 \
-  python-dotenv==1.0.1 \
   python-docx==1.1.2
 
 

@@ -12,5 +12,7 @@ Miniconda3-latest-Linux-x86_64.sh
 
 #Fichiers générés
 *.png
+*.docx
 QuChemReport_full_report*
 UV-*
+*.docx
