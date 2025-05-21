@@ -64,9 +64,15 @@
       margin-top: 1rem;
     }
 
-    .checkbox-group {
+    .checkbox-group, .flex_container {
       display: flex;
       flex-wrap: wrap;
+      margin: auto;
+    }
+
+    .flex_container {
+      margin-left: 2em;
+      margin-bottom: 1em;
     }
 
     .checkbox-group label {
@@ -74,6 +80,11 @@
       font-weight: normal;
       width: 33%;
       margin: 1em 5% auto 12%;
+    }
+
+    .flex_container label {
+      width: 25%;
+      max-width: 250px;
     }
 
 
@@ -249,14 +260,14 @@ function addLogfile(path = '', type = 'opt', excited_state = '') {
 
   const checkboxes = types.map(t =>
     `<label style="margin-right: 10px;">
-      <input type="checkbox" name="logfile_type" value="${t}" ${selectedTypes.includes(t) ? 'checked' : ''}>
-      ${t}
-    </label>`
+        <input type="checkbox" name="logfile_type" value="${t}" ${selectedTypes.includes(t) ? 'checked' : ''}>
+        ${t}
+      </label>`
   ).join('');
 
   container.innerHTML = `
     <label>Chemin: <input type="text" name="logfile_path" value="${path}"></label>
-    <label>Type(s): ${checkboxes}</label>
+    <label>Type(s): <div class=\"flex_container\">${checkboxes} </div></label>
     <label>État excité (optionnel): <input type="text" name="excited_state" value="${excited_state}"></label>
     <button type="button" onclick="removeLogfile(this)">Supprimer</button>
   `;
