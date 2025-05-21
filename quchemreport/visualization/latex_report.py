@@ -192,7 +192,7 @@ def json2latex(config, json_list, data, mode="clean"):
             OPT_param_print = False
             for i,jsonfile in enumerate(json_list):
                 #OPT calculation parameters :
-                if ((job_types[i] == ['OPT']) or  (job_types[i]== ['FREQ', 'OPT'])) and (OPT_param_print == False) :
+                if (('OPT' in job_types[i]) or ('FREQ' in job_types[i] and 'OPT' in job_types[i]job_types[i])) and (OPT_param_print == False) :
                     param_table.add_row([" ", " " , " "])
                     k = 0
                     j = str(k+1)
@@ -213,7 +213,7 @@ def json2latex(config, json_list, data, mode="clean"):
                     except:
                         pass 
                 #FREQ calculation parameters :  
-                if job_types[i] == ['FREQ'] or job_types[i]== ['FREQ', 'OPT'] or job_types[i]== ['FREQ', 'OPT', 'TD'] :
+                if 'FREQ' in job_types[i] or ('FREQ' in job_types[i] and 'OPT' in job_types[i]) or ('FREQ' in job_types[i] and 'OPT' in job_types[i] and 'TD' in job_types[i]):
                     k = 0
                     j =str(k+1)
                     param_table.add_row(["Job type: Frequency and thermochemical analysis", " ", " "])
@@ -239,7 +239,7 @@ def json2latex(config, json_list, data, mode="clean"):
                         except KeyError :
                             pass               
                 #TD calculation parameters :          
-                if job_types[i] == ['TD'] or job_types[i]== ['FREQ', 'OPT', 'TD']:
+                if 'TD' in job_types[i] or ('FREQ' in job_types[i] and 'OPT' in job_types[i] and 'TD' in job_types[i]):
                     k = 0
                     j =str(k+1)
                     param_table.add_row(["Job type: Time-dependent calculation", " " , " "])
@@ -300,8 +300,8 @@ def json2latex(config, json_list, data, mode="clean"):
             OPT_res_print = False
             for i,jsonfile in enumerate(json_list):          
                 #OPT calculation results:
-                if ((job_types[i] == ['OPT']) or  (job_types[i] == ['FREQ', 'OPT']) \
-                              or job_types[i]== ['FREQ', 'OPT', 'TD']) and (OPT_res_print == False) :
+                if (('OPT' in job_types[i]) or ('FREQ' in job_types[i] and 'OPT' in job_types[i]) \
+                     or ('FREQ' in job_types[i] and 'OPT' in job_types[i] and 'TD' in job_types[i])) and (OPT_res_print == False) :
                     j = str(i+1)
                     OPT_res_print = True # to prevent repetition from OPT and FREQ
                     res_table.add_row([" ", " " , " "])
@@ -309,7 +309,7 @@ def json2latex(config, json_list, data, mode="clean"):
                     res_table.add_row(['Converged nuclear repulsion energy', "%.5f Hartrees" % json_list[i]["results"]["geometry"]["nuclear_repulsion_energy_from_xyz"], " "])
 
                 #FREQ calculation results:
-                if job_types[i] == ['FREQ'] or  job_types[i]== ['FREQ', 'OPT'] or job_types[i]== ['FREQ', 'OPT', 'TD'] :
+                if 'FREQ' in job_types[i] or ('FREQ' in job_types[i] and 'OPT' in job_types[i]) or ('FREQ' in job_types[i] and 'OPT' in job_types[i] and 'TD' in job_types[i]) :
                     k = 0
                     j =str(k+1)
                     res_table.add_row([" ", " " , " "])
@@ -606,7 +606,7 @@ def json2latex(config, json_list, data, mode="clean"):
         # Specific OPT and FREQ report tables 
         for i,jsonfile in enumerate(json_list):          
             # Normal modes table                                                       
-            if job_types[i] == ['FREQ'] or  job_types[i]== ['FREQ', 'OPT'] or job_types[i]== ['FREQ', 'OPT', 'TD'] :
+            if 'FREQ' in job_types[i] or ('FREQ' in job_types[i] and 'OPT' in job_types[i]) or ('FREQ' in job_types[i] and 'TD' in job_types[i] and 'OPT' in job_types[i]):
                 k = 0
                 try : vibrational_int = np.array(json_list[i]["results"]["freq"]["vibrational_int"])
                 except KeyError :
@@ -641,7 +641,7 @@ def json2latex(config, json_list, data, mode="clean"):
                 doc.append(NoEscape(r'\end{center}'))
         
             #TD calculation results :                
-            if job_types[i] == ['TD'] or job_types[i]== ['FREQ', 'OPT', 'TD'] :                        
+            if 'TD' in job_types[i] or ('FREQ' in job_types[i] and 'OPT' in job_types[i] and 'TD' in job_types[i]) :
                 j =str(i+1)
                 try : et_energies = json_list[i]["results"]["excited_states"]["et_energies"]
                 except KeyError :
@@ -816,7 +816,7 @@ def json2latex(config, json_list, data, mode="clean"):
         # Specific OPT_ES report tables 
         for i,jsonfile in enumerate(json_list):          
             #TD emission calculation results :                
-            if job_types[i] == ['OPT_ES'] :                        
+            if 'OPT_ES' in job_types[i]:
                 j =str(i+1)
                 #res_table.add_row(["Optimization of Time-dependent excited state specific results", " " , " "])
                 emi_state = [int(s) for s in json_list[i]["metadata"]["log_file"] if s.isdigit()][0] 

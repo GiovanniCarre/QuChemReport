@@ -182,7 +182,7 @@ def json2docx(config, json_list, data, mode="clean"):
     OPT_param_print = False
     for i, jsonfile in enumerate(json_list):
         # OPT calculation parameters :
-        if ((job_types[i] == ['OPT']) or (job_types[i] == ['FREQ', 'OPT'])) and (OPT_param_print == False):
+        if (('OPT' in job_types[i]) or ('FREQ' in job_types[i] and 'OPT' in job_types[i]) and (OPT_param_print == False):
             t.append([" ", " ", " "])
             k = 0
             j = str(k + 1)
@@ -203,7 +203,9 @@ def json2docx(config, json_list, data, mode="clean"):
             except:
                 pass
                 # FREQ calculation parameters :
-        if job_types[i] == ['FREQ'] or job_types[i] == ['FREQ', 'OPT'] or job_types[i] == ['FREQ', 'OPT', 'TD']:
+        if ('FREQ' in job_types[i] or
+            ('FREQ' in job_types[i] and 'OPT' in job_types[i]) or
+            ('FREQ' in job_types[i] and 'OPT' in job_types[i] and 'TD' in job_types[i])):
             k = 0
             j = str(k + 1)
             t.append(["Job type: Frequency and thermochemical analysis", " ", " "])
@@ -229,7 +231,9 @@ def json2docx(config, json_list, data, mode="clean"):
                 except KeyError:
                     pass
                     # TD calculation parameters :
-        if job_types[i] == ['TD'] or job_types[i] == ['FREQ', 'OPT', 'TD']:
+        if ('TD' in job_types[i] or
+            ('FREQ' in job_types[i] and 'OPT' in job_types[i] and 'TD' in job_types[i])):
+
             k = 0
             j = str(k + 1)
             t.append(["Job type: Time-dependent calculation", " ", " "])
@@ -307,8 +311,10 @@ def json2docx(config, json_list, data, mode="clean"):
             OPT_res_print = False
             for i, jsonfile in enumerate(json_list):
                 # OPT calculation results:
-                if ((job_types[i] == ['OPT']) or (job_types[i] == ['FREQ', 'OPT']) \
-                    or job_types[i] == ['FREQ', 'OPT', 'TD']) and (OPT_res_print == False):
+                if ('OPT' in job_types[i]) or ('FREQ' in job_types[i] and 'OPT' in job_types[i]) \
+                    or ('FREQ' in job_types[i] and 'OPT' in job_types[i] and 'TD' in job_types[i])) \
+                    and (OPT_res_print == False):
+
                     j = str(i + 1)
                     OPT_res_print = True  # to prevent repetition from OPT and FREQ
                     t.append([" ", " ", " "])
@@ -318,7 +324,9 @@ def json2docx(config, json_list, data, mode="clean"):
                                            "nuclear_repulsion_energy_from_xyz"], " "])
 
                 # FREQ calculation results:
-                if job_types[i] == ['FREQ'] or job_types[i] == ['FREQ', 'OPT'] or job_types[i] == ['FREQ', 'OPT', 'TD']:
+                if 'FREQ' in job_types[i] or \
+                ('FREQ' in job_types[i] and 'OPT' in job_types[i])\
+                 ('FREQ' in job_types[i] and 'OPT' in job_types[i] and 'TD' in job_types[i]):
                     k = 0
                     j = str(k + 1)
                     t.append([" ", " ", " "])

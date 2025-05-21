@@ -54,14 +54,38 @@ pip install ^
   python-dotenv==1.0.1 ^
   python-docx==1.1.2
 
-
 cd /d "%~dp0"
 rmdir /s /q orbkit >nul 2>&1
 git clone https://github.com/orbkit/orbkit.git
 cd orbkit
+
+echo.
+echo [INFO] Installation d'Orbkit...
 pip install .
+IF %ERRORLEVEL% NEQ 0 (
+    echo.
+    echo [ERREUR] L'installation d'Orbkit a échoué.
+    echo.
+    echo === Instructions de secours ===
+    echo 1. Ouvrez le terminal suivant :
+    echo    "x64 Native Tools Command Prompt for VS 2022"
+    echo    (vous le trouvez dans le menu démarrer)
+    echo.
+    echo 2. Exécutez ensuite manuellement ces commandes :
+    echo     call "%CONDA_BAT%" activate %ENV_NAME%
+    echo     cd orbkit
+    echo     pip install .
+    echo.
+    echo Si vous voyez un message lié à MSVC (Microsoft C++ Build Tools),
+    echo installez-les depuis :
+    echo    https://visualstudio.microsoft.com/visual-cpp-build-tools/
+    echo.
+    pause
+    exit /b 1
+)
+
 cd ..
-echo
+echo.
 echo Début
 python main.py examples\H2O_TD.log examples\H2O_OPT.log
 

@@ -34,8 +34,9 @@ def tests(job_types, config, jf):
         package =  jf[i]["comp_details"]["general"]["package"]
         formulas.append(jf[i]["molecule"]["formula"])
         nres.append(jf[i]["results"]["geometry"]["nuclear_repulsion_energy_from_xyz"])
-        if ((job_types[i] == ['OPT_ES']) or
-            (job_types[i] == ['FREQ_ES'])) :
+        if 'SP' in job_types[i]:
+        if (('OPT_ES' in job_types[i]) or
+            ('FREQ_ES' in job_types[i])) :
             print ('Detected optimized excited state in :', jf[i]['metadata']['log_file'])
         else :
             nres_noES.append(jf[i]["results"]["geometry"]["nuclear_repulsion_energy_from_xyz"])
@@ -57,12 +58,12 @@ def tests(job_types, config, jf):
         except KeyError : 
             MO_coeff.append([])   # Problem we would like to add N/A is no MO to keep the same index hax jf[i] but test on len after   
         charges.append(jf[i]["molecule"]["charge"])
-        if job_types[i] != ['SP']:
+        if 'SP' not in job_types[i]:
             charges_noSP.append(jf[i]["molecule"]["charge"])
-        if job_types[i] == ['SP']:
+        if 'SP' in job_types[i]:
             charges_SP.append(jf[i]["molecule"]["charge"])
         multiplicities.append(jf[i]["molecule"]["multiplicity"])
-        if job_types[i] != ['SP']:
+        if 'SP' not in job_types[i]:
             multiplicities_noSP.append(jf[i]["molecule"]["multiplicity"])
 
     # Problem in the formula: the charges appear and direct comparison fails

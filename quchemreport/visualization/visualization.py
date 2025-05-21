@@ -64,7 +64,7 @@ def jobs(config, jf, data):
         report_type = 'text'
         
     for i, jt in enumerate(job_types):	  
-        if job_types[i] == ['OPT'] or job_types[i] == ['FREQ', 'OPT'] or job_types[i] == ['FREQ', 'OPT', 'TD'] : 
+        if 'OPT' in job_types[i] or ('FREQ' in job_types[i] and 'OPT' in job_types[i]) or ('FREQ' in job_types[i] and 'OPT' in job_types[i] and 'TD' in job_types[i]) :
             # Test if Ground state by geometry, if atomic positions present: generate picture
             if jf[i]["results"]["geometry"]["nuclear_repulsion_energy_from_xyz"] == nres_noES[0] \
                               and jf[i]["results"]["geometry"]["elements_3D_coords_converged"] != 'N/A': 
@@ -135,7 +135,7 @@ def jobs(config, jf, data):
         #if  job_types[i] == ['FREQ']  or job_types[i] == ['FREQ', 'OPT'] :
         # For now, no spectrum of IR. 
         
-        if job_types[i] == ['TD'] or job_types[i] == ['FREQ', 'OPT', 'TD'] :
+        if 'TD' in job_types[i] or ('FREQ' in job_types[i] and 'OPT' in job_types[i] and 'TD' in job_types[i]):
             if jf[i]["results"]["geometry"]["nuclear_repulsion_energy_from_xyz"] == nres_noES[0] \
                 and int(jf[i]["molecule"]["charge"]) == charge_ref :                
                 print("Electronic transitions detected. Calculating the UV absorption spectrum.")                     

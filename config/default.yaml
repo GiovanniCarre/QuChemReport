@@ -18,7 +18,7 @@ common_solver: gaussian  # Solver used for all log files: gaussian, orca, etc.
 
 logfiles:
   - path: "./examples/H2O_OPT.log"
-    type: opt
+    type:  ["opt"]
     # type can be a single job or list: [opt, freq, td]
     # 'solver' field is now unnecessary due to common_solver
 #  - path: "./TD.log"

@@ -55,6 +55,7 @@ config = Config("config/default.yaml")
 nproc = psutil.cpu_count(logical=False)
 availableMem = int(0.9*psutil.virtual_memory().available / 1e+9)
 """
+    Ancienne version des paramètres
 pre_parser = argparse.ArgumentParser(add_help=False)
 pre_parser.add_argument('logfiles', type=str, nargs='+')
 pre_parser.add_argument('--profile', type=str, help='Use a profile for predefined arguments')
@@ -125,7 +126,7 @@ if verbose:
 # Parsing
 print("\nParsing input files...")
 paths = [log['path'] for log in config.logfiles]
-job_types = [[log['type'].upper()] for log in config.logfiles]
+job_types = [[t.upper() for t in logfile["type"]] for logfile in config["logfiles"]]
 
 lf, jf = process_logfile_list(paths, log_storage_path=tmpdirname, verbose=verbose, sparse=False)
 
