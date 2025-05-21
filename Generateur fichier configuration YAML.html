@@ -8,12 +8,14 @@
     * {
       box-sizing: border-box;
     }
+
     body {
       font-family: sans-serif;
       background: #f5f5f5;
       margin: 0;
       padding: 2rem;
     }
+
     .container {
       max-width: 1000px;
       margin: auto;
@@ -22,9 +24,12 @@
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     }
+
+
     h1, h2 {
       text-align: center;
     }
+
     h2 {
       margin-bottom: 0;
       margin-top: 1.5em;
@@ -33,14 +38,18 @@
       margin-top: 2em;
       margin-bottom: 0;
     }
+
     section {
       margin-bottom: 2rem;
     }
+
     label {
       font-weight: bold;
       display: block;
       margin-top: 0.5rem;
     }
+
+
     input[type="text"], input[type="number"], select {
       width: 100%;
       padding: 0.5rem;
@@ -48,24 +57,40 @@
       border: 1px solid #ccc;
       border-radius: 4px;
     }
+
     textarea {
       width: 100%;
       height: 200px;
       margin-top: 1rem;
     }
-    .checkbox-group {
+
+    .checkbox-group, .flex_container {
       display: flex;
       flex-wrap: wrap;
+      margin: auto;
     }
+
+    .flex_container {
+      margin-left: 2em;
+      margin-bottom: 1em;
+    }
+
     .checkbox-group label {
       display: block;
       font-weight: normal;
       width: 33%;
       margin: 1em 5% auto 12%;
     }
+
+    .flex_container label {
+      width: 25%;
+      max-width: 250px;
+    }
+
+
     button {
       display: block;
-      background: #007acc;
+      background: #009080;
       color: #fff;
       border: none;
       padding: 0.75rem 1.5rem;
@@ -74,13 +99,20 @@
       cursor: pointer;
       margin: 1em auto 1.5em auto;
     }
+
     button:hover {
-      background: #005ea1;
+      background: #49a794;
     }
+
+
     .logfile-block {
       border: 1px dashed #ccc;
       padding: 1rem;
       margin-bottom: 1rem;
+    }
+
+    input[type="checkbox"] {
+      accent-color: #009080;
     }
   </style>
 </head>
@@ -223,19 +255,19 @@ function addLogfile(path = '', type = 'opt', excited_state = '') {
   container.className = 'logfile-entry';
   container.style.marginBottom = '8px';
 
+  const types = ['opt', 'freq', 'td', 'opt_es', 'freq_es', 'nmr', 'sp'];
+  const selectedTypes = Array.isArray(type) ? type : [type];
+
+  const checkboxes = types.map(t =>
+    `<label style="margin-right: 10px;">
+        <input type="checkbox" name="logfile_type" value="${t}" ${selectedTypes.includes(t) ? 'checked' : ''}>
+        ${t}
+      </label>`
+  ).join('');
+
   container.innerHTML = `
     <label>Chemin: <input type="text" name="logfile_path" value="${path}"></label>
-    <label>Type:
-      <select name="logfile_type">
-        <option value="opt" ${type === 'opt' ? 'selected' : ''}>opt</option>
-        <option value="freq" ${type === 'freq' ? 'selected' : ''}>freq</option>
-        <option value="td" ${type === 'td' ? 'selected' : ''}>td</option>
-        <option value="opt_es" ${type === 'opt_es' ? 'selected' : ''}>opt_es</option>
-        <option value="freq_es" ${type === 'freq_es' ? 'selected' : ''}>freq_es</option>
-        <option value="nmr" ${type === 'nmr' ? 'selected' : ''}>nmr</option>
-        <option value="sp" ${type === 'sp' ? 'selected' : ''}>sp</option>
-      </select>
-    </label>
+    <label>Type(s): <div class=\"flex_container\">${checkboxes} </div></label>
     <label>État excité (optionnel): <input type="text" name="excited_state" value="${excited_state}"></label>
     <button type="button" onclick="removeLogfile(this)">Supprimer</button>
   `;
@@ -243,8 +275,10 @@ function addLogfile(path = '', type = 'opt', excited_state = '') {
   document.getElementById('logfiles').appendChild(container);
 }
 
+
+
 function removeLogfile(button) {
-  const entry = button.parentElement;
+  const entry = button.parentElement; //selection du parent du bouton, a modifier si on deplace le bouton
   entry.remove();
 }
 
@@ -253,6 +287,8 @@ function generateYAML() {
   const getVal = id => document.getElementById(id)?.value;
   const getCheck = id => document.getElementById(id)?.checked;
 
+  //j'ai decide de laisser les commentaires pour aider a l'interpretation si on utilise ce type de documents dans le futur
+  //il reste cependant accessoire
   const yaml = [
     '# ==============================================================================',
     '# QuChemReport YAML Input File',
@@ -273,20 +309,24 @@ function generateYAML() {
     'logfiles:'
   ];
 
+
   const logs = document.querySelectorAll('.logfile-entry');
   logs.forEach(block => {
     const path = block.querySelector('input[name="logfile_path"]').value.trim();
-    const type = block.querySelector('select[name="logfile_type"]').value.trim();
+    const checkboxes = block.querySelectorAll('input[name="logfile_type"]:checked');
+    const selectedTypes = Array.from(checkboxes).map(cb => cb.value);
     const excited = block.querySelector('input[name="excited_state"]').value.trim();
 
-    if (path && type) {
+    if (path && selectedTypes.length > 0) {
       yaml.push(`  - path: "${path}"`);
-      yaml.push(`    type: ${type}`);
+      yaml.push(`    type: [${selectedTypes.map(t => `"${t}"`).join(', ')}]`);
       if (excited) yaml.push(`    excited_state: ${excited}`);
     }
   });
+
   yaml.push('  # type can be a single job or list: [opt, freq, td]');
   yaml.push("  # 'solver' field is now unnecessary due to common_solver\n");
+
 
   yaml.push('quality_control:');
   yaml.push(`  method_consistency: ${getVal('method_consistency')}  # strict | lax`);
@@ -294,6 +334,8 @@ function generateYAML() {
   document.querySelectorAll('.checkbox-group input[type="checkbox"]').forEach(cb => {
     if (cb.checked && cb.value) yaml.push(`    ${cb.value}: true`);
   });
+
+
 
   yaml.push('\noutput:');
   yaml.push(`  format: ${getVal('format')} # html | markdown | pdf`);
@@ -303,12 +345,14 @@ function generateYAML() {
     'computational_details','molecule_representation','mo_diagrams','population_analysis',
     'thermo_data','uv_vis_absorption','uv_vis_emission','cd_spectrum','fukui_functions','nmr_shifts','mep_maps'
   ];
+
   ids.forEach(id => yaml.push(`    ${id}: ${getCheck(id)}`));
   yaml.push('');
   yaml.push('    electron_density_difference:');
   yaml.push(`      enabled: ${getCheck('edd_enabled')}`);
   yaml.push(`      mode: ${getVal('edd_mode')}     # dominant_only | first_n | all_states`);
   yaml.push(`      first_n: ${getVal('edd_first_n')}`);
+
 
   yaml.push('\n# CAMERA CONTROL FOR VISUALIZATION');
   yaml.push('camera_view:');
@@ -317,6 +361,7 @@ function generateYAML() {
   yaml.push('                       # manual = user-defined view saved to JSON');
   yaml.push(`  preset: ${getVal('camera_preset')}            # used only if mode = preset; values: x, y, z`);
   yaml.push(`  view_file: ${getVal('camera_view_file') || 'null'}      # used only if mode = manual; path to a saved .json\n`);
+
 
   yaml.push('resources:');
   yaml.push(`  nproc: ${getVal('nproc')}                   # Not enforced yet`);
@@ -334,7 +379,9 @@ function generateYAML() {
   a.download = 'quchemreport.yaml';
   a.click();
   URL.revokeObjectURL(url);
+
 }
 </script>
+
 </body>
 </html>
