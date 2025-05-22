@@ -149,7 +149,7 @@ visualization.jobs(config, jf, data)
 print('Discretization and visualisation process done.')
 
 # Generate tex and pdf report
-print('\nGenerating report.')
+print('\nGenerating report. Type : ',config.output.format)
 if config.output.format == "latex":
     latex_report.json2latex(config, jf, data, mode="clean")
 elif config.output.format == "docx":
