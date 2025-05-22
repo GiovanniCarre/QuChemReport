@@ -17,8 +17,8 @@ common_solver: gaussian  # Solver used for all log files: gaussian, orca, etc.
                          # ⚠️ All files must come from this solver.
 
 logfiles:
-  - path: "./examples/H2O_OPT.log"
-    type:  ["opt"]
+  - path: "./examples/H2O_TD.log"
+    type:  ["td"]
     # type can be a single job or list: [opt, freq, td]
     # 'solver' field is now unnecessary due to common_solver
 #  - path: "./TD.log"
@@ -40,7 +40,7 @@ quality_control:
     ground_state_optimization: true
 
 output:
-  format: latex # docx | latex
+  format: docx # docx | latex
   verbosity: full # full | si | text
   include:
     computational_details: true
@@ -55,7 +55,7 @@ output:
 
     electron_density_difference:
       enabled: true
-      mode: dominant_only     # dominant_only | first_n | all_states
+      mode: full     # dominant_only | first_n | all_states
       first_n: 5
 
     fukui_functions: true
