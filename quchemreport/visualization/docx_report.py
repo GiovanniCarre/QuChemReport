@@ -7,6 +7,7 @@ from docx.shared import Pt, RGBColor
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 import numpy as np
+from quchemreport.utils.units import nm_to_wnb
 
 from cclib.parser.utils import PeriodicTable
 
@@ -69,6 +70,15 @@ def set_vertical_line(table, index, visible):
         else :
             set_cell_border(row.cells[index], start={"val": "single", "sz": 2, "color": color, "space": 0})
 
+def set_horizontal_line(table, index, visible=True, size=2):
+    color = "000000" if visible else "FFFFFF"
+    if index == len(table.rows):
+        for cell in table.rows[index-1].cells:
+            set_cell_border(cell, bottom={"val": "single", "sz": size, "color": color, "space": 0})
+    else :
+        for cell in table.rows[index].cells:
+            set_cell_border(cell, top={"val": "single", "sz": size, "color": color, "space": 0})
+
 def set_all_cell_borders(table, visible) :
     color = "000000" if visible else "FFFFFF"
     for row in table.rows:
@@ -127,6 +137,7 @@ def figure_two_col(doc, img_path1, img_path2, caption_text, width_in_inches=2.5)
     run.font.size = Pt(10)
 
 def json2docx(config, json_list, data, mode="clean"):
+    ### SECTION 1
     report_type = config.output.include.electron_density_difference.mode
     data_ref = data['data_for_discretization']
     job_types = data['job_types']
@@ -332,494 +343,697 @@ def json2docx(config, json_list, data, mode="clean"):
             t.append(['CDFT indices: Electron-flow', "%.4f e-" % data_ref["results"]["wavefunction"]["DeltaN"], ""])
         except KeyError:
             pass
-            # Specific calculations results:
-            OPT_res_print = False
-            for i, jsonfile in enumerate(json_list):
-                # OPT calculation results:
-                if ((job_types[i] == ['OPT']) or (job_types[i] == ['FREQ', 'OPT']) \
-                    or job_types[i] == ['FREQ', 'OPT', 'TD']) and (OPT_res_print == False):
-                    j = str(i + 1)
-                    OPT_res_print = True  # to prevent repetition from OPT and FREQ
-                    t.append([" ", " ", " "])
-                    t.append(["Geometry optimization specific results", " ", " "])
-                    t.append(['Converged nuclear repulsion energy',
-                                       "%.5f Hartrees" % json_list[i]["results"]["geometry"][
-                                           "nuclear_repulsion_energy_from_xyz"], " "])
+        # Specific calculations results:
+    OPT_res_print = False
+    for i, jsonfile in enumerate(json_list):
+        # OPT calculation results:
+        if ((job_types[i] == ['OPT']) or (job_types[i] == ['FREQ', 'OPT']) \
+            or job_types[i] == ['FREQ', 'OPT', 'TD']) and (OPT_res_print == False):
+            j = str(i + 1)
+            OPT_res_print = True  # to prevent repetition from OPT and FREQ
+            t.append([" ", " ", " "])
+            t.append(["Geometry optimization specific results", " ", " "])
+            t.append(['Converged nuclear repulsion energy',
+                               "%.5f Hartrees" % json_list[i]["results"]["geometry"][
+                                   "nuclear_repulsion_energy_from_xyz"], " "])
 
-                # FREQ calculation results:
-                if job_types[i] == ['FREQ'] or job_types[i] == ['FREQ', 'OPT'] or job_types[i] == ['FREQ', 'OPT', 'TD']:
-                    k = 0
-                    j = str(k + 1)
-                    t.append([" ", " ", " "])
-                    t.append(["Frequency and Thermochemistry specific results", " ", " "])
-                    try:
-                        rtemper = json_list[i]["comp_details"]["freq"]["temperature"]
-                    except KeyError:
-                        rtemper = []
-                    # ND-arrays
-                    try:
-                        vibrational_int = np.array(json_list[i]["results"]["freq"]["vibrational_int"])
-                    except KeyError:
-                        vibrational_int = []
-                    try:
-                        vibrational_freq = np.array(json_list[i]["results"]["freq"]["vibrational_freq"])
-                    except KeyError:
-                        vibrational_freq = []
+        # FREQ calculation results:
+        if job_types[i] == ['FREQ'] or job_types[i] == ['FREQ', 'OPT'] or job_types[i] == ['FREQ', 'OPT', 'TD']:
+            k = 0
+            j = str(k + 1)
+            t.append([" ", " ", " "])
+            t.append(["Frequency and Thermochemistry specific results", " ", " "])
+            try:
+                rtemper = json_list[i]["comp_details"]["freq"]["temperature"]
+            except KeyError:
+                rtemper = []
+            # ND-arrays
+            try:
+                vibrational_int = np.array(json_list[i]["results"]["freq"]["vibrational_int"])
+            except KeyError:
+                vibrational_int = []
+            try:
+                vibrational_freq = np.array(json_list[i]["results"]["freq"]["vibrational_freq"])
+            except KeyError:
+                vibrational_freq = []
 
-                    if len(vibrational_int) == 0:
-                        vibrational_int = []
-                    else:
-                        # Print number of negative frequencies
-                        nb_negatives = np.sum(vibrational_freq < 0, axis=0)
+            if len(vibrational_int) == 0:
+                vibrational_int = []
+            else:
+                # Print number of negative frequencies
+                nb_negatives = np.sum(vibrational_freq < 0, axis=0)
 
-                    if (len(vibrational_int) != 0) and (rtemper != "N/A"):
-                        if "zero_point_energy" in json_list[i]["results"]["freq"]:
-                            t.append(['Sum of electronic and zero-point energy',
-                                               "%.5f Hartrees" % json_list[i]["results"]["freq"]["zero_point_energy"],
-                                               " "])
-                        if "electronic_thermal_energy" in json_list[i]["results"]["freq"]:
-                            t.append(["Sum of electronic and thermal energies at  %.2f K" % rtemper,
-                                               "%.5f Hartrees" % json_list[i]["results"]["freq"][
-                                                   "electronic_thermal_energy"], " "])
-                        if "enthalpy" in json_list[i]["results"]["freq"]:
-                            t.append(["Enthalpy at %.2f K" % rtemper,
-                                               "%.5f Hartrees" % json_list[i]["results"]["freq"]["enthalpy"], " "])
-                        if "free_energy" in json_list[i]["results"]["freq"]:
-                            t.append(["Gibbs free energy at %.2f K" % rtemper,
-                                               "%.5f Hartrees" % json_list[i]["results"]["freq"]["free_energy"], " "])
-                        if "entropy" in json_list[i]["results"]["freq"]:
-                            t.append(["Entropy at %.2f K" % rtemper,
-                                               "%.5f Hartrees" % json_list[i]["results"]["freq"]["entropy"], " "])
-            # End of the big common result table.
+            if (len(vibrational_int) != 0) and (rtemper != "N/A"):
+                if "zero_point_energy" in json_list[i]["results"]["freq"]:
+                    t.append(['Sum of electronic and zero-point energy',
+                                       "%.5f Hartrees" % json_list[i]["results"]["freq"]["zero_point_energy"],
+                                       " "])
+                if "electronic_thermal_energy" in json_list[i]["results"]["freq"]:
+                    t.append(["Sum of electronic and thermal energies at  %.2f K" % rtemper,
+                                       "%.5f Hartrees" % json_list[i]["results"]["freq"][
+                                           "electronic_thermal_energy"], " "])
+                if "enthalpy" in json_list[i]["results"]["freq"]:
+                    t.append(["Enthalpy at %.2f K" % rtemper,
+                                       "%.5f Hartrees" % json_list[i]["results"]["freq"]["enthalpy"], " "])
+                if "free_energy" in json_list[i]["results"]["freq"]:
+                    t.append(["Gibbs free energy at %.2f K" % rtemper,
+                                       "%.5f Hartrees" % json_list[i]["results"]["freq"]["free_energy"], " "])
+                if "entropy" in json_list[i]["results"]["freq"]:
+                    t.append(["Entropy at %.2f K" % rtemper,
+                                       "%.5f Hartrees" % json_list[i]["results"]["freq"]["entropy"], " "])
+        # End of the big common result table.
 
-            ## List of tables that are not job associated but dependent of data_ref.
-            # Population analysis tables and Fukui condensed values table only in full reports
-        if report_type == 'full':
-            # Mulliken partial charges table
-            try:
-                mulliken = data_ref["results"]["wavefunction"]["Mulliken_partial_charges"]
-            except KeyError:
-                mulliken = []
-            # test other population analysis
-            try:
-                hirsh = data_ref["results"]["wavefunction"]["Hirshfeld_partial_charges"]
-            except KeyError:
-                hirsh = []
-            try:
-                cm5 = data_ref["results"]["wavefunction"]["CM5_partial_charges"]
-            except KeyError:
-                cm5 = []
-            if len(mulliken) != 0 :
-                # only Mulliken analysis
-                mulliken = np.array(mulliken)
-                mean_m = np.mean(mulliken)
-                dev_m = np.std(mulliken)
-                thres_max = mean_m + dev_m
-                thres_min = mean_m - dev_m
-                if (len(hirsh) == 0) and (len(cm5) == 0):
-                    ind = np.argsort(mulliken)
-                    t.append([" ", " " , " "])
-                    t.append(['Mean Mulliken atomic charge and standard deviation', "%.4f e-" % mean_m , "%.4f e-" % dev_m  ])
-                    t.append(['Atoms with negatives charges under the standard deviation', "NÂ°" , "Mulliken charge"  ])
-                    for ielt in ind :
-                        if (mulliken[ielt] < thres_min) :
-                            t.append([ " " , "%s %d" %(PeriodicTable().element[json_list[i]['molecule']["atoms_Z"][ielt]], (1+ielt)), "  %.3f" % mulliken[ielt] ])
-                    t.append(['Atoms with positives charges over the standard deviation', "NÂ°" , "Mulliken charge"  ])
-                    for ielt in ind :
-                        if (mulliken[ielt] > thres_max) :
-                            t.append([ " " , "%s %d" %(PeriodicTable().element[json_list[i]['molecule']["atoms_Z"][ielt]], (1+ielt)), "  %+.3f" % mulliken[ielt] ])
+        ## List of tables that are not job associated but dependent of data_ref.
+        # Population analysis tables and Fukui condensed values table only in full reports
+    if report_type == 'full':
+        # Mulliken partial charges table
+        try:
+            mulliken = data_ref["results"]["wavefunction"]["Mulliken_partial_charges"]
+        except KeyError:
+            mulliken = []
+        # test other population analysis
+        try:
+            hirsh = data_ref["results"]["wavefunction"]["Hirshfeld_partial_charges"]
+        except KeyError:
+            hirsh = []
+        try:
+            cm5 = data_ref["results"]["wavefunction"]["CM5_partial_charges"]
+        except KeyError:
+            cm5 = []
+        if len(mulliken) != 0 :
+            # only Mulliken analysis
+            mulliken = np.array(mulliken)
+            mean_m = np.mean(mulliken)
+            dev_m = np.std(mulliken)
+            thres_max = mean_m + dev_m
+            thres_min = mean_m - dev_m
+            if (len(hirsh) == 0) and (len(cm5) == 0):
+                ind = np.argsort(mulliken)
+                t.append([" ", " " , " "])
+                t.append(['Mean Mulliken atomic charge and standard deviation', "%.4f e-" % mean_m , "%.4f e-" % dev_m  ])
+                t.append(['Atoms with negatives charges under the standard deviation', "NÂ°" , "Mulliken charge"  ])
+                for ielt in ind :
+                    if (mulliken[ielt] < thres_min) :
+                        t.append([ " " , "%s %d" %(PeriodicTable().element[json_list[i]['molecule']["atoms_Z"][ielt]], (1+ielt)), "  %.3f" % mulliken[ielt] ])
+                t.append(['Atoms with positives charges over the standard deviation', "NÂ°" , "Mulliken charge"  ])
+                for ielt in ind :
+                    if (mulliken[ielt] > thres_max) :
+                        t.append([ " " , "%s %d" %(PeriodicTable().element[json_list[i]['molecule']["atoms_Z"][ielt]], (1+ielt)), "  %+.3f" % mulliken[ielt] ])
 
-                elif (len(hirsh) != 0) and (len(cm5) != 0):
-                    # Hirshfeld and CM5 partial charges table
-                    cm5 = np.array(cm5)
-                    mean_h = np.mean(cm5)
-                    dev_h = np.std(cm5)
-                    thres_max = mean_h + dev_h
-                    thres_min = mean_h - dev_h
-                    ind = np.argsort(cm5)
-                    t.append([" ", " " , " "])
-                    t2 = []
-                    t2.append(["Table. Atomic charges population analysis. Selection of the most charged atoms based on Hirshfeld analysis"])
-                    t2.append(["", "Atom and NÂ°", "Hirshfeld charge", "CM5 charge", "Mulliken charge"])
-                    t2.append(["", "", "", "", ""])
-                    for ielt in ind :
-                        if (cm5[ielt] < thres_min) :
-                            t2.append(["",
-                                             "%s %d" %(PeriodicTable().element[json_list[i]['molecule']["atoms_Z"][ielt]], (1+ielt)),
-                                             "  %+.3f" % cm5[ielt] ,
-                                             "  %+.3f" % hirsh[ielt] ,
-                                             "  %+.3f" % mulliken[ielt]   ])
-                    for ielt in ind :
-                        if (cm5[ielt] > thres_max) :
-                            t2.append(["",
-                                             "%s %d" %(PeriodicTable().element[json_list[i]['molecule']["atoms_Z"][ielt]], (1+ielt)),
-                                             "  %+.3f" % cm5[ielt] ,
-                                             "  %+.3f" % hirsh[ielt] ,
-                                             "  %+.3f" % mulliken[ielt]   ])
-                    t2.append(["", "", "", "", ""])
-                    t.append(t2)
-            # Fukui condensed values table
-            try:
-                fplus_lambda_mulliken = data_ref["results"]["wavefunction"]["fplus_lambda_mulliken"]
-            except KeyError:
-                fplus_lambda_mulliken = []
-            try:
-                fminus_lambda_mulliken = data_ref["results"]["wavefunction"]["fminus_lambda_mulliken"]
-            except KeyError:
-                fminus_lambda_mulliken = []
-            try:
-                fdual_lambda_mulliken = data_ref["results"]["wavefunction"]["fdual_lambda_mulliken"]
-            except KeyError:
-                fdual_lambda_mulliken = []
-            # Fukui condensed values table, check for Hirshfeld values. If present, use them instead.
-            try:
-                fplus_lambda_hirshfeld = data_ref["results"]["wavefunction"]["fplus_lambda_hirshfeld"]
-            except KeyError:
-                fplus_lambda_hirshfeld = []
-            try:
-                fminus_lambda_hirshfeld = data_ref["results"]["wavefunction"]["fminus_lambda_hirshfeld"]
-            except KeyError:
-                fminus_lambda_hirshfeld = []
-            try:
-                fdual_lambda_hirshfeld = data_ref["results"]["wavefunction"]["fdual_lambda_hirshfeld"]
-            except KeyError:
-                fdual_lambda_hirshfeld = []
-            # Test if Fdual is available. If not Table is not mandatory.
-            if len(fdual_lambda_hirshfeld) > 0:
-                fdual_lambda_hirshfeld = np.array(fdual_lambda_hirshfeld)
-                mean_fd = np.mean(fdual_lambda_hirshfeld)
-                dev_fd = np.std(fdual_lambda_hirshfeld)
-                thres_max = mean_fd + dev_fd
-                thres_min = mean_fd - dev_fd
-                ind = np.argsort(fdual_lambda_hirshfeld)
-                t2 = []
-                t2.append(["Table. Selection of the most important condensed Fukui functions based on Hirshfeld charges. "])
-                t2.append(["", "Atom", "atomic dual descriptor (f+ - f-)", "atomic electrophilicity f+", "atomic nucleophilicity f-", ""])
-                t2.append(["", "", "", "", "", ""])
+            elif (len(hirsh) != 0) and (len(cm5) != 0):
+                pass
+                """
+                # Hirshfeld and CM5 partial charges table
+                cm5 = np.array(cm5)
+                mean_h = np.mean(cm5)
+                dev_h = np.std(cm5)
+                thres_max = mean_h + dev_h
+                thres_min = mean_h - dev_h
+                ind = np.argsort(cm5)
+                res_table.add_row([" ", " ", " "])
+                doc.append(NoEscape(r'\begin{center}'))
+                with doc.create(Tabular('rlrrr')) as tableau:
+                    row_cells = [MultiColumn(5, align='c',
+                                             data="Table. Atomic charges population analysis. Selection of the most charged atoms based on Hirshfeld analysis")]
+                    tableau.add_row(row_cells)
+                    tableau.add_row(["", "Atom and NÂ°", "Hirshfeld charge", "CM5 charge", "Mulliken charge"])
+                    tableau.add_hline()
+                    for ielt in ind:
+                        if (cm5[ielt] < thres_min):
+                            tableau.add_row(["",
+                                             "%s %d" % (PeriodicTable().element[json_list[i]['molecule']["atoms_Z"][ielt]],(1 + ielt)),
+                                             "  %+.3f" % cm5[ielt],
+                                             "  %+.3f" % hirsh[ielt],
+                                             "  %+.3f" % mulliken[ielt]])
+                    for ielt in ind:
+                        if (cm5[ielt] > thres_max):
+                            tableau.add_row(["",
+                                             "%s %d" % (PeriodicTable().element[json_list[i]['molecule']["atoms_Z"][ielt]],(1 + ielt)),
+                                             "  %+.3f" % cm5[ielt],
+                                             "  %+.3f" % hirsh[ielt],
+                                             "  %+.3f" % mulliken[ielt]])
+                    tableau.add_hline()
+                doc.append(NoEscape(r'\end{center}'))
+                """
+        # Fukui condensed values table
+        try:
+            fplus_lambda_mulliken = data_ref["results"]["wavefunction"]["fplus_lambda_mulliken"]
+        except KeyError:
+            fplus_lambda_mulliken = []
+        try:
+            fminus_lambda_mulliken = data_ref["results"]["wavefunction"]["fminus_lambda_mulliken"]
+        except KeyError:
+            fminus_lambda_mulliken = []
+        try:
+            fdual_lambda_mulliken = data_ref["results"]["wavefunction"]["fdual_lambda_mulliken"]
+        except KeyError:
+            fdual_lambda_mulliken = []
+        # Fukui condensed values table, check for Hirshfeld values. If present, use them instead.
+        try:
+            fplus_lambda_hirshfeld = data_ref["results"]["wavefunction"]["fplus_lambda_hirshfeld"]
+        except KeyError:
+            fplus_lambda_hirshfeld = []
+        try:
+            fminus_lambda_hirshfeld = data_ref["results"]["wavefunction"]["fminus_lambda_hirshfeld"]
+        except KeyError:
+            fminus_lambda_hirshfeld = []
+        try:
+            fdual_lambda_hirshfeld = data_ref["results"]["wavefunction"]["fdual_lambda_hirshfeld"]
+        except KeyError:
+            fdual_lambda_hirshfeld = []
+        # Test if Fdual is available. If not Table is not mandatory.
+        if len(fdual_lambda_hirshfeld) > 0:
+            pass
+            """
+            fdual_lambda_hirshfeld = np.array(fdual_lambda_hirshfeld)
+            mean_fd = np.mean(fdual_lambda_hirshfeld)
+            dev_fd = np.std(fdual_lambda_hirshfeld)
+            thres_max = mean_fd + dev_fd
+            thres_min = mean_fd - dev_fd
+            ind = np.argsort(fdual_lambda_hirshfeld)
+            doc.append(NoEscape(r'\begin{center}'))
+            with doc.create(Tabular('p{0cm}rrrrp{0cm}')) as tableau:
+                row_cells = [MultiColumn(6, align='c',
+                                         data="Table. Selection of the most important condensed Fukui functions based on Hirshfeld charges. ")]
+                tableau.add_row(row_cells)
+                tableau.add_row(["", "Atom", "atomic dual descriptor (f+ - f-)", "atomic electrophilicity f+",
+                                 "atomic nucleophilicity f-", ""])
+                tableau.add_hline()
                 for ielt in ind:
                     if (fdual_lambda_hirshfeld[ielt] < thres_min):
-                        t2.append(["", "%s %d" % (PeriodicTable().element[json_list[i]['molecule']["atoms_Z"][ielt]], (1 + ielt)),
+                        tableau.add_row(["", "%s %d" % (
+                        PeriodicTable().element[json_list[i]['molecule']["atoms_Z"][ielt]], (1 + ielt)),
                                          "  %.2f" % fdual_lambda_hirshfeld[ielt],
                                          "  %.2f" % fplus_lambda_hirshfeld[ielt],
                                          "  %.2f" % fminus_lambda_hirshfeld[ielt],
                                          ""])
                 for ielt in ind:
                     if (fdual_lambda_hirshfeld[ielt] > thres_max):
-                        t2.append(["", "%s %d" % (PeriodicTable().element[json_list[i]['molecule']["atoms_Z"][ielt]], (1 + ielt)),
+                        tableau.add_row(["", "%s %d" % (
+                        PeriodicTable().element[json_list[i]['molecule']["atoms_Z"][ielt]], (1 + ielt)),
                                          "  %.2f" % fdual_lambda_hirshfeld[ielt],
                                          "  %.2f" % fplus_lambda_hirshfeld[ielt],
                                          "  %.2f" % fminus_lambda_hirshfeld[ielt],
                                          ""])
-                t2.append(["", "", "", "", "", ""])
-                t.append(t2)
-            # Test if Fdual Hirshfeld is not available check for Mulliken one. If not Table is not mandatory.
-            elif len(fdual_lambda_mulliken) > 0:
-                fdual_lambda_mulliken = np.array(fdual_lambda_mulliken)
-                mean_fd = np.mean(fdual_lambda_mulliken)
-                dev_fd = np.std(fdual_lambda_mulliken)
-                thres_max = mean_fd + dev_fd
-                thres_min = mean_fd - dev_fd
-                ind = np.argsort(fdual_lambda_mulliken)
-                t2 = []
-                t2.append(["Table. Selection of the most important condensed Fukui functions based on Mulliken charges. "])
-                t2.append(["", "Atom", "atomic dual descriptor (f+ - f-)", "atomic electrophilicity f+","atomic nucleophilicity f-", ""])
-                t2.append(["", "", "", "", "", ""])
+                tableau.add_hline()
+            doc.append(NoEscape(r'\end{center}'))
+            """
+        # Test if Fdual Hirshfeld is not available check for Mulliken one. If not Table is not mandatory.
+        elif len(fdual_lambda_mulliken) > 0:
+            pass #TODO
+            """
+            fdual_lambda_mulliken = np.array(fdual_lambda_mulliken)
+            mean_fd = np.mean(fdual_lambda_mulliken)
+            dev_fd = np.std(fdual_lambda_mulliken)
+            thres_max = mean_fd + dev_fd
+            thres_min = mean_fd - dev_fd
+            ind = np.argsort(fdual_lambda_mulliken)
+            doc.append(NoEscape(r'\begin{center}'))
+            with doc.create(Tabular('p{0cm}rrrrp{0cm}')) as tableau:
+                row_cells = [MultiColumn(6, align='c',
+                                         data="Table. Selection of the most important condensed Fukui functions based on Mulliken charges. ")]
+                tableau.add_row(row_cells)
+                tableau.add_row(["", "Atom", "atomic dual descriptor (f+ - f-)", "atomic electrophilicity f+",
+                                 "atomic nucleophilicity f-", ""])
+                tableau.add_hline()
                 for ielt in ind:
                     if (fdual_lambda_mulliken[ielt] < thres_min):
-                        t2.append(["", "%s %d" % (PeriodicTable().element[json_list[i]['molecule']["atoms_Z"][ielt]], (1 + ielt)),
+                        tableau.add_row(["", "%s %d" % (
+                        PeriodicTable().element[json_list[i]['molecule']["atoms_Z"][ielt]], (1 + ielt)),
                                          "  %.2f" % fdual_lambda_mulliken[ielt],
                                          "  %.2f" % fplus_lambda_mulliken[ielt],
                                          "  %.2f" % fminus_lambda_mulliken[ielt],
                                          ""])
                 for ielt in ind:
                     if (fdual_lambda_mulliken[ielt] > thres_max):
-                        t2.append(["", "%s %d" % (PeriodicTable().element[json_list[i]['molecule']["atoms_Z"][ielt]], (1 + ielt)),
+                        tableau.add_row(["", "%s %d" % (
+                        PeriodicTable().element[json_list[i]['molecule']["atoms_Z"][ielt]], (1 + ielt)),
                                          "  %.2f" % fdual_lambda_mulliken[ielt],
                                          "  %.2f" % fplus_lambda_mulliken[ielt],
                                          "  %.2f" % fminus_lambda_mulliken[ielt],
                                          ""])
-                t2.append(["", "", "", "", "", ""])
-                t.append(t2)
-        table = create_table(doc, t)
-        set_all_cell_borders(table, False)
-        display_vertical_lines(table)
-        set_vertical_line(table, 1, False)
-        doc.add_paragraph("\nJob type: Geometry optimization")
-        table.columns[0].width = Pt(200)
-        table.columns[1].width = Pt(200)
-        table.columns[2].width = Pt(80)
-        ## List of figures. Beware insertion based on files. Should be given through arguments!
-        # figure with MO not available in text report type
-        if report_type != 'text':
-            # Test if calculation is unrestricted (alpha and beta spin electrons)
-            if len(homo_ind) == 2:
-                # Unrestricted calculation: treat the alpha orbitals first
-                nomPng = "temp/img-MO-homo_alpha.png"
-                nomPng2 = "temp/img-MO-homo_beta.png"
-                nomPng3 = "temp/img-MO-lumo_alpha.png"
-                nomPng4 = "temp/img-MO-lumo_beta.png"
-                if (os.path.isfile(nomPng)):
-                    if (os.path.isfile(nomPng2)):
-                        figure_two_col(doc, nomPng, nomPng2, "Representation of the HOMO of spin alpha (left) and spin beta (right).")
-                        if (os.path.isfile(nomPng3)):
-                            if (os.path.isfile(nomPng4)):
-                                figure_two_col(doc, nomPng3, nomPng4, "Representation of the LUMO of spin alpha (left) and spin beta (right).")
-                    elif (os.path.isfile(nomPng3)):
-                        figure_two_col(doc, nomPng, nomPng3, "Representation of the Frontier Molecular Orbitals HOMO (left) and LUMO (right) of spin alpha.")
-            # For restricted calculation print HOMO and LUMO and use two cameras instead
-            else:
-                nomPng = "temp/img-MO-homo.png"
-                nomPng2 = "temp/img-MO-homo_cam2.png"
-                nomPng3 = "temp/img-MO-lumo.png"
-                nomPng4 = "temp/img-MO-lumo_cam2.png"
-                if (os.path.isfile(nomPng)):
-                    if (os.path.isfile(nomPng2)):
-                        figure_two_col(doc, nomPng, nomPng2, "Representation of the HOMO from two points of view.")
-                        if (os.path.isfile(nomPng3)):
-                            if (os.path.isfile(nomPng4)):
-                                figure_two_col(doc, nomPng3, nomPng4, "Representation of the LUMO from two points of view.")
-                    elif (os.path.isfile(nomPng3)):
-                        figure_two_col(doc, nomPng, nomPng3, "Representation of the Frontier Molecular Orbitals HOMO (left) and LUMO (right).")
-
-        # Figures of that are only printed in full type report
-        if report_type == 'full':
-            # figures of Fukui functions if calculated
-            nomPng = "temp/img-fukui-SP_plus.png"
-            nomPng2 = "temp/img-fukui-SP_plus_cam2.png"
-            nomPng3 = "temp/img-fukui-SP_minus.png"
-            nomPng4 = "temp/img-fukui-SP_minus_cam2.png"
+                tableau.add_hline()
+            doc.append(NoEscape(r'\end{center}'))
+            """
+    table = create_table(doc, t)
+    set_all_cell_borders(table, False)
+    display_vertical_lines(table)
+    set_vertical_line(table, 1, False)
+    doc.add_paragraph("\nJob type: Geometry optimization")
+    table.columns[0].width = Pt(200)
+    table.columns[1].width = Pt(200)
+    table.columns[2].width = Pt(80)
+    ## List of figures. Beware insertion based on files. Should be given through arguments!
+    # figure with MO not available in text report type
+    if report_type != 'text':
+        # Test if calculation is unrestricted (alpha and beta spin electrons)
+        if len(homo_ind) == 2:
+            # Unrestricted calculation: treat the alpha orbitals first
+            nomPng = "temp/img-MO-homo_alpha.png"
+            nomPng2 = "temp/img-MO-homo_beta.png"
+            nomPng3 = "temp/img-MO-lumo_alpha.png"
+            nomPng4 = "temp/img-MO-lumo_beta.png"
             if (os.path.isfile(nomPng)):
                 if (os.path.isfile(nomPng2)):
-                    figure_two_col(doc, nomPng, nomPng2, "Representation of the F+ function from two points of view. The Blue color indicate the most electrophilic regions.")
+                    figure_two_col(doc, nomPng, nomPng2, "Representation of the HOMO of spin alpha (left) and spin beta (right).")
                     if (os.path.isfile(nomPng3)):
                         if (os.path.isfile(nomPng4)):
-                            figure_two_col(doc, nomPng3, nomPng4, "Representation of the F- function from two points of view. The Blue color indicate the most nucleophilic regions.")
+                            figure_two_col(doc, nomPng3, nomPng4, "Representation of the LUMO of spin alpha (left) and spin beta (right).")
                 elif (os.path.isfile(nomPng3)):
-                    figure_two_col(doc, nomPng, nomPng3, "Representation of the electrophilic (left) and nucleophilic (right) fukui functions.")
-            nomPng = "temp/img-Fdual.png"
-            nomPng2 = "temp/img-Fdual_cam2.png"
+                    figure_two_col(doc, nomPng, nomPng3, "Representation of the Frontier Molecular Orbitals HOMO (left) and LUMO (right) of spin alpha.")
+        # For restricted calculation print HOMO and LUMO and use two cameras instead
+        else:
+            nomPng = "temp/img-MO-homo.png"
+            nomPng2 = "temp/img-MO-homo_cam2.png"
+            nomPng3 = "temp/img-MO-lumo.png"
+            nomPng4 = "temp/img-MO-lumo_cam2.png"
             if (os.path.isfile(nomPng)):
                 if (os.path.isfile(nomPng2)):
-                    figure_two_col(doc, nomPng, nomPng2, "Representation of the Dual descriptor from two points of view. Electrophilic and nucleophilic regions correspond to blue and white surfaces.")
+                    figure_two_col(doc, nomPng, nomPng2, "Representation of the HOMO from two points of view.")
+                    if (os.path.isfile(nomPng3)):
+                        if (os.path.isfile(nomPng4)):
+                            figure_two_col(doc, nomPng3, nomPng4, "Representation of the LUMO from two points of view.")
                 elif (os.path.isfile(nomPng3)):
-                    figure_two_col(doc, nomPng, nomPng2, "Representation of the Dual descriptor. Electrophilic and nucleophilic regions correspond to blue and white surfaces.")
+                    figure_two_col(doc, nomPng, nomPng3, "Representation of the Frontier Molecular Orbitals HOMO (left) and LUMO (right).")
 
-            # figure with ESP
-            nomPng = "temp/img-MEP_fixed.png"
-            nomPng2 = "temp/img-MEP.png"
-            if (os.path.isfile(nomPng)):
-                if (os.path.isfile(nomPng2)):
-                    figure_two_col(doc, nomPng, nomPng2, "Representations of the Molecular Electrostatic Potential mapped on the electron density (cutoff value of 0.002 e-/bohr3). On the left, red, blue and green regions correspond to negative values < -0.06 a.u., positive values > 0.08 a.u. and neutral values respectively. On the right, the scale is set automatically to highlight the minimum values in red and the maximum values in blues.")
-                elif (not os.path.isfile(nomPng2)):
-                    pass #TODO figure_one_col(doc, nomPng, taillePng="10cm", "Representations of the Molecular Electrostatic Potential mapped on the electron density (cutoff value of 0.002 e-/bohr3). On the left, red, blue and green regions correspond to negative values < -0.06 a.u., positive values > 0.08 a.u. and neutral values respectively.")
+    # Figures of that are only printed in full type report
+    if report_type == 'full':
+        # figures of Fukui functions if calculated
+        nomPng = "temp/img-fukui-SP_plus.png"
+        nomPng2 = "temp/img-fukui-SP_plus_cam2.png"
+        nomPng3 = "temp/img-fukui-SP_minus.png"
+        nomPng4 = "temp/img-fukui-SP_minus_cam2.png"
+        if (os.path.isfile(nomPng)):
+            if (os.path.isfile(nomPng2)):
+                figure_two_col(doc, nomPng, nomPng2, "Representation of the F+ function from two points of view. The Blue color indicate the most electrophilic regions.")
+                if (os.path.isfile(nomPng3)):
+                    if (os.path.isfile(nomPng4)):
+                        figure_two_col(doc, nomPng3, nomPng4, "Representation of the F- function from two points of view. The Blue color indicate the most nucleophilic regions.")
+            elif (os.path.isfile(nomPng3)):
+                figure_two_col(doc, nomPng, nomPng3, "Representation of the electrophilic (left) and nucleophilic (right) fukui functions.")
+        nomPng = "temp/img-Fdual.png"
+        nomPng2 = "temp/img-Fdual_cam2.png"
+        if (os.path.isfile(nomPng)):
+            if (os.path.isfile(nomPng2)):
+                figure_two_col(doc, nomPng, nomPng2, "Representation of the Dual descriptor from two points of view. Electrophilic and nucleophilic regions correspond to blue and white surfaces.")
+            elif (os.path.isfile(nomPng3)):
+                figure_two_col(doc, nomPng, nomPng2, "Representation of the Dual descriptor. Electrophilic and nucleophilic regions correspond to blue and white surfaces.")
 
-            # External picture generated by AIMAll
-            nomPng = "temp/img-AIM-BCP-rho.png"
-            if (not os.path.isfile(nomPng)):
-                print(nomPng + " not found. It can not be added to the report.\n")
+        # figure with ESP
+        nomPng = "temp/img-MEP_fixed.png"
+        nomPng2 = "temp/img-MEP.png"
+        if (os.path.isfile(nomPng)):
+            if (os.path.isfile(nomPng2)):
+                figure_two_col(doc, nomPng, nomPng2, "Representations of the Molecular Electrostatic Potential mapped on the electron density (cutoff value of 0.002 e-/bohr3). On the left, red, blue and green regions correspond to negative values < -0.06 a.u., positive values > 0.08 a.u. and neutral values respectively. On the right, the scale is set automatically to highlight the minimum values in red and the maximum values in blues.")
+            elif (not os.path.isfile(nomPng2)):
+                pass #TODO figure_one_col(doc, nomPng, taillePng="10cm", "Representations of the Molecular Electrostatic Potential mapped on the electron density (cutoff value of 0.002 e-/bohr3). On the left, red, blue and green regions correspond to negative values < -0.06 a.u., positive values > 0.08 a.u. and neutral values respectively.")
+
+        # External picture generated by AIMAll
+        nomPng = "temp/img-AIM-BCP-rho.png"
+        if (not os.path.isfile(nomPng)):
+            print(nomPng + " not found. It can not be added to the report.\n")
+        else:
+            pass#TODO figure_one_col(doc, nomPng, taillePng="10cm", "Electron density value at each of the bond critical points calculated with the AIMAll program.")
+
+    # Specific OPT and FREQ report tables
+
+    # TODO
+    """
+    for i, jsonfile in enumerate(json_list):
+        # Normal modes table
+        if job_types[i] == ['FREQ'] or job_types[i] == ['FREQ', 'OPT'] or job_types[i] == ['FREQ', 'OPT', 'TD']:
+            k = 0
+            try:
+                vibrational_int = np.array(json_list[i]["results"]["freq"]["vibrational_int"])
+            except KeyError:
+                vibrational_int = []
+            try:
+                vibrational_freq = np.array(json_list[i]["results"]["freq"]["vibrational_freq"])
+            except KeyError:
+                vibrational_freq = []
+            try:
+                vibrational_sym = np.array(json_list[i]["results"]["freq"]["vibrational_sym"])
+            except KeyError:
+                vibrational_sym = np.array(["N/A" for _ in range(len(vibrational_int))])
+            # filtering & orderering
+            if len(vibrational_int) == 0:
+                vibrational_int = []
             else:
-                pass#TODO figure_one_col(doc, nomPng, taillePng="10cm", "Electron density value at each of the bond critical points calculated with the AIMAll program.")
+                vib_filter = vibrational_int > 50.
+                vib_order = np.argsort(vibrational_freq[vib_filter])[::-1]
+                vibrational_int = vibrational_int[vib_filter][vib_order]
+                vibrational_freq = vibrational_freq[vib_filter][vib_order]
+                vibrational_sym = vibrational_sym[vib_filter][vib_order]
+            with doc.create(Tabular('rrrc')) as tableau:
+                row_cells = [MultiColumn(4, align='c',
+                                         data="Table. Most intense (> 50 km/mol) molecular vibrations in wavenumbers")]
+                tableau.add_row(row_cells)
+                tableau.add_row(["", "Frequencies", "Intensity", "Symmetry"])
+                tableau.add_hline()
+                for k in range(len(vibrational_freq)):
+                    tableau.add_row(["",
+                                     "%d" % vibrational_freq[k],
+                                     "%d" % vibrational_int[k],
+                                     vibrational_sym[k]])
+                tableau.add_hline()
 
-        # Specific OPT and FREQ report tables
-
-        # TODO
-        """
-        for i, jsonfile in enumerate(json_list):
-            # Normal modes table
-            if job_types[i] == ['FREQ'] or job_types[i] == ['FREQ', 'OPT'] or job_types[i] == ['FREQ', 'OPT', 'TD']:
-                k = 0
-                try:
-                    vibrational_int = np.array(json_list[i]["results"]["freq"]["vibrational_int"])
-                except KeyError:
-                    vibrational_int = []
-                try:
-                    vibrational_freq = np.array(json_list[i]["results"]["freq"]["vibrational_freq"])
-                except KeyError:
-                    vibrational_freq = []
-                try:
-                    vibrational_sym = np.array(json_list[i]["results"]["freq"]["vibrational_sym"])
-                except KeyError:
-                    vibrational_sym = np.array(["N/A" for _ in range(len(vibrational_int))])
-                # filtering & orderering
-                if len(vibrational_int) == 0:
-                    vibrational_int = []
+        # TD calculation results :
+        if job_types[i] == ['TD'] or job_types[i] == ['FREQ', 'OPT', 'TD']:
+            j = str(i + 1)
+            try:
+                et_energies = json_list[i]["results"]["excited_states"]["et_energies"]
+            except KeyError:
+                et_energies = []
+            # Conversion of wavenumbers to nm
+            et_nm = [nm_to_wnb / x for x in et_energies]
+            rnbExci = len(et_energies)
+            if rnbExci != 0 and et_energies != 'N/A':
+                doc.append(NoEscape(r'\begin{center}'))
+                # 2 kind of table including the charge transfer data when discretization is done (SI and Full)
+                if report_type == 'text':
+                    with doc.create(Tabular('rrrrrrp{6cm}')) as td_tabu:
+                        if rnbExci < 21:
+                            row_cells = [MultiColumn(7, align='c',
+                                                     data="Table. Results concerning the calculated mono-electronic excitations.")]
+                            td_selection = 0
+                        else:  # select the excited states when there is more than 20 calculated excited states.
+                            row_cells = [MultiColumn(7, align='c',
+                                                     data="Table. First five calculated mono-electronic excitations and those with f > 0.1 or R > 10."
+                                                     )]
+                            td_selection = 1
+                        td_tabu.add_row(row_cells)
+                        td_tabu.add_row(["E.S.", "Symmetry", " nm ", NoEscape(r"cm$^{-1}$"),
+                                         italic("f"), "R",
+                                         "Excitation description : initial OM - ending OM (% if > 5%)"])
+                        td_tabu.add_hline()
+                        for j in range(rnbExci):
+                            try:
+                                etr_i = json_list[i]["results"]["excited_states"]["et_rot"][j]
+                            except KeyError:
+                                etr_i = 0.
+                            trans = json_list[i]["results"]["excited_states"]["et_transitions"][j]
+                            # Form the string description of the escitation. Based on MO init -> MO end (%coeff)
+                            CIS = " "
+                            for subtrans, ST in enumerate(trans):
+                                coeff = int(ST[2] ** 2 * 100)
+                                if coeff > 5.:
+                                    if len(homo_ind) == 2:  # Unrestricted calculation Spin needs to be printed
+                                        if ST[0][1] == 0:
+                                            spin_init = "a"  # spin alpha to print in the table
+                                        elif ST[0][1] == 1:
+                                            spin_init = "b"  # spin beta to print in the table
+                                        else:
+                                            spin_init = ""  # unrecognised spin
+                                        if ST[1][1] == 0:
+                                            spin_end = "a"  # spin alpha to print in the table
+                                        elif ST[1][1] == 1:
+                                            spin_end = "b"  # spin beta to print in the table
+                                        else:
+                                            spin_end = ""  # unrecognised spin
+                                        CIS += str(ST[0][0] + 1) + spin_init + "-" + str(
+                                            ST[1][0] + 1) + spin_end + " (" + str(coeff) + ") "
+                                    if len(homo_ind) == 1:  # Restricted calculation Spin is omitted
+                                        CIS += str(ST[0][0] + 1) + "-" + str(ST[1][0] + 1) + "(" + str(
+                                            coeff) + "); "
+                            # select the excited states when there is more than 20 calculated excited states. based on oscillator strength and rotational strength
+                            if (td_selection == 0) or ((td_selection == 1) and ((j < 5) or \
+                                                                                (json_list[i]["results"][
+                                                                                     "excited_states"]["et_oscs"][
+                                                                                     j] > 0.1) or \
+                                                                                ((etr_i == "N/A") or (
+                                                                                        abs(etr_i) > 10.)))):
+                                td_tabu.add_row([(1 + j),
+                                                 json_list[i]["results"]["excited_states"]["et_sym"][j],
+                                                 "%d " % et_nm[j],
+                                                 "%d " % et_energies[j],
+                                                 "%.3f" % json_list[i]["results"]["excited_states"]["et_oscs"][j],
+                                                 "%.1f" % etr_i,
+                                                 # Printing only transitions over 5%
+                                                 "%s" % CIS
+                                                 ])
+                        td_tabu.add_hline()
                 else:
-                    vib_filter = vibrational_int > 50.
-                    vib_order = np.argsort(vibrational_freq[vib_filter])[::-1]
-                    vibrational_int = vibrational_int[vib_filter][vib_order]
-                    vibrational_freq = vibrational_freq[vib_filter][vib_order]
-                    vibrational_sym = vibrational_sym[vib_filter][vib_order]
-                with doc.create(Tabular('rrrc')) as tableau:
-                    row_cells = [MultiColumn(4, align='c',
-                                             data="Table. Most intense (> 50 km/mol) molecular vibrations in wavenumbers")]
-                    tableau.add_row(row_cells)
-                    tableau.add_row(["", "Frequencies", "Intensity", "Symmetry"])
-                    tableau.add_hline()
-                    for k in range(len(vibrational_freq)):
-                        tableau.add_row(["",
-                                         "%d" % vibrational_freq[k],
-                                         "%d" % vibrational_int[k],
-                                         vibrational_sym[k]])
-                    tableau.add_hline()
+                    with doc.create(Tabular('rrrrrrrrrp{6cm}')) as td_tabu:
+                        if rnbExci < 21:
+                            row_cells = [MultiColumn(10, align='c',
+                                                     data="Table. Results concerning the calculated mono-electronic excitations.")]
+                            td_selection = 0
+                        else:  # select the excited states when there is more than 20 calculated excited states.
+                            row_cells = [MultiColumn(10, align='c',
+                                                     data="Table. First five calculated mono-electronic excitations and those with f > 0.1 or R > 10."
+                                                     )]
+                            td_selection = 1
+                        td_tabu.add_row(row_cells)
+                        td_tabu.add_row(["E.S.", "Symmetry", " nm ", NoEscape(r"cm$^{-1}$"),
+                                         italic("f"), "R", NoEscape(r"$\Lambda$"), NoEscape(r"d$_{CT}$"),
+                                         NoEscape(r"q$_{CT}$"),
+                                         "Excitation description : initial OM - ending OM (% if > 5%)"])
+                        td_tabu.add_hline()
+                        for j in range(rnbExci):
+                            try:
+                                etr_i = json_list[i]["results"]["excited_states"]["et_rot"][j]
+                            except KeyError:
+                                etr_i = 0.
+                            trans = json_list[i]["results"]["excited_states"]["et_transitions"][j]
+                            # Form the string description of the escitation. Based on MO init -> MO end (%coeff)
+                            CIS = " "
+                            for subtrans, ST in enumerate(trans):
+                                coeff = int(ST[2] ** 2 * 100)
+                                if coeff > 5.:
+                                    if len(homo_ind) == 2:  # Unrestricted calculation Spin needs to be printed
+                                        if ST[0][1] == 0:
+                                            spin_init = "a"  # spin alpha to print in the table
+                                        elif ST[0][1] == 1:
+                                            spin_init = "b"  # spin beta to print in the table
+                                        else:
+                                            spin_init = ""  # unrecognised spin
+                                        if ST[1][1] == 0:
+                                            spin_end = "a"  # spin alpha to print in the table
+                                        elif ST[1][1] == 1:
+                                            spin_end = "b"  # spin beta to print in the table
+                                        else:
+                                            spin_end = ""  # unrecognised spin
+                                        CIS += str(ST[0][0] + 1) + spin_init + "-" + str(
+                                            ST[1][0] + 1) + spin_end + " (" + str(coeff) + ") "
+                                    if len(homo_ind) == 1:  # Restricted calculation Spin is omitted
+                                        CIS += str(ST[0][0] + 1) + "-" + str(ST[1][0] + 1) + "(" + str(
+                                            coeff) + "); "
+                            # select the excited states when there is more than 20 calculated excited states. based on oscillator strength and rotational strength
+                            if (td_selection == 0) or ((td_selection == 1) and ((j < 5) or \
+                                                                                (json_list[i]["results"][
+                                                                                     "excited_states"]["et_oscs"][
+                                                                                     j] > 0.1) or \
+                                                                                ((etr_i == "N/A") or (
+                                                                                        abs(etr_i) > 10.)))):
+                                td_tabu.add_row([(1 + j),
+                                                 json_list[i]["results"]["excited_states"]["et_sym"][j],
+                                                 "%d " % et_nm[j],
+                                                 "%d " % et_energies[j],
+                                                 "%.3f" % json_list[i]["results"]["excited_states"]["et_oscs"][j],
+                                                 "%.1f" % etr_i,
+                                                 "%.2f" % json_list[i]["results"]["excited_states"]["Tozer_lambda"][
+                                                     j],
+                                                 "%.2f" % json_list[i]["results"]["excited_states"]["d_ct"][j],
+                                                 "%.2f" % json_list[i]["results"]["excited_states"]["q_ct"][j],
+                                                 # Printing only transitions over 5%
+                                                 "%s" % CIS
+                                                 ])
 
-            # TD calculation results :
-            if job_types[i] == ['TD'] or job_types[i] == ['FREQ', 'OPT', 'TD']:
+                        td_tabu.add_hline()
+                doc.append(NoEscape(r'\end{center}'))
+    """
+    # UV visible Absorption and Circular dischroism plots
+    nomPng3 = "temp/img-UV-Abso-Spectrum.png"
+    if (not os.path.isfile(nomPng3)):
+        print("No PNG named " + nomPng3 + " found. The spectrum can not be added to the report.\n")
+    else:
+        figure_one_col(doc, nomPng3, "Calculated UV visible Absorption spectrum with a gaussian broadening (FWHM = 3000 cm-1)")
+
+    nomPng4 = "temp/img-UV-CD-Spectrum.png"
+    if (not os.path.isfile(nomPng4)):
+        print("No PNG named " + nomPng4 + " found. The spectrum can not be added to the report.\n")
+    else:
+        figure_one_col(doc, nomPng4, "Calculated Circular Dichroism spectrum with a gaussian broadening (FWHM = 3000 cm-1)")
+
+        # figures not available in text report type
+        if report_type != 'text':
+
+            # figure with EDD
+            nomPng = "temp/img-EDD-S1.png"
+            nomPng_cam2 = "temp/img-EDD-S1_cam2.png"
+            nomPng2 = "temp/img-EDD-S2.png"
+            nomPng2_cam2 = "temp/img-EDD-S2_cam2.png"
+            if (os.path.isfile(nomPng)):
+                if (os.path.isfile(nomPng_cam2)):
+                    figure_two_col(doc, nomPng, nomPng_cam2, "Representation of the Electron Density Difference (S1-S0) from two points of view.")
+                    if (os.path.isfile(nomPng2)):
+                        if (os.path.isfile(nomPng2_cam2)):
+                            figure_two_col(doc, nomPng2, nomPng2_cam2, "Representation of the Electron Density Difference (S2-S0) from two points of view.")
+                elif (os.path.isfile(nomPng2)):
+                    figure_two_col(doc, nomPng, nomPng2, "Representation of the Electron Density Difference (S1-S0 left) and (S2-S0 right). The excited electron and the hole regions are indicated by respectively blue and white surfaces.")
+            else:
+                nomPng = "temp/img-EDD-1.png"
+                nomPng_cam2 = "temp/img-EDD-1_cam2.png"
+                nomPng2 = "temp/img-EDD-2.png"
+                nomPng2_cam2 = "temp/img-EDD-2_cam2.png"
+                if (os.path.isfile(nomPng)):
+                    if (os.path.isfile(nomPng_cam2)):
+                        figure_two_col(doc, nomPng, nomPng_cam2, "Representation of the Electron Density Difference (ES1-GS) from two points of view.")
+                        if (os.path.isfile(nomPng2)):
+                            if (os.path.isfile(nomPng2_cam2)):
+                                figure_two_col(doc, nomPng2, nomPng2_cam2, "Representation of the Electron Density Difference (ES2-GS) from two points of view.")
+                    elif (os.path.isfile(nomPng2)):
+                        figure_two_col(doc, nomPng, nomPng2, "Representation of the Electron Density Difference (ES1-GS left) and (ES2-GS right). The excited electron and the hole regions are indicated by respectively blue and white surfaces.")
+
+        # Specific OPT_ES report tables
+        """TODO
+        for i, jsonfile in enumerate(json_list):
+            # TD emission calculation results :
+            if 'OPT_ES' in job_types[i]:
                 j = str(i + 1)
+                # res_table.add_row(["Optimization of Time-dependent excited state specific results", " " , " "])
+                emi_state = [int(s) for s in json_list[i]["metadata"]["log_file"] if s.isdigit()][0]
+                emi_index = emi_state - 1
                 try:
-                    et_energies = json_list[i]["results"]["excited_states"]["et_energies"]
+                    emi_energy = json_list[i]["results"]["excited_states"]["et_energies"][emi_index]
                 except KeyError:
-                    et_energies = []
+                    emi_energy = 0.0
                 # Conversion of wavenumbers to nm
-                et_nm = [nm_to_wnb / x for x in et_energies]
-                rnbExci = len(et_energies)
-                if rnbExci != 0 and et_energies != 'N/A':
+                et_nm = [nm_to_wnb / emi_energy]
+                rnbExci = len([emi_energy])
+                if rnbExci != 0 and emi_energy != 0.0:
                     doc.append(NoEscape(r'\begin{center}'))
                     # 2 kind of table including the charge transfer data when discretization is done (SI and Full)
                     if report_type == 'text':
-                        with doc.create(Tabular('rrrrrrp{6cm}')) as td_tabu:
-                            if rnbExci < 21:
-                                row_cells = [MultiColumn(7, align='c',
-                                                         data="Table. Results concerning the calculated mono-electronic excitations.")]
-                                td_selection = 0
-                            else:  # select the excited states when there is more than 20 calculated excited states.
-                                row_cells = [MultiColumn(7, align='c',
-                                                         data="Table. First five calculated mono-electronic excitations and those with f > 0.1 or R > 10."
-                                                         )]
-                                td_selection = 1
-                            td_tabu.add_row(row_cells)
-                            td_tabu.add_row(["E.S.", "Symmetry", " nm ", NoEscape(r"cm$^{-1}$"),
-                                             italic("f"), "R",
-                                             "Excitation description : initial OM - ending OM (% if > 5%)"])
-                            td_tabu.add_hline()
-                            for j in range(rnbExci):
-                                try:
-                                    etr_i = json_list[i]["results"]["excited_states"]["et_rot"][j]
-                                except KeyError:
-                                    etr_i = 0.
-                                trans = json_list[i]["results"]["excited_states"]["et_transitions"][j]
-                                # Form the string description of the escitation. Based on MO init -> MO end (%coeff)
-                                CIS = " "
-                                for subtrans, ST in enumerate(trans):
-                                    coeff = int(ST[2] ** 2 * 100)
-                                    if coeff > 5.:
-                                        if len(homo_ind) == 2:  # Unrestricted calculation Spin needs to be printed
-                                            if ST[0][1] == 0:
-                                                spin_init = "a"  # spin alpha to print in the table
-                                            elif ST[0][1] == 1:
-                                                spin_init = "b"  # spin beta to print in the table
-                                            else:
-                                                spin_init = ""  # unrecognised spin
-                                            if ST[1][1] == 0:
-                                                spin_end = "a"  # spin alpha to print in the table
-                                            elif ST[1][1] == 1:
-                                                spin_end = "b"  # spin beta to print in the table
-                                            else:
-                                                spin_end = ""  # unrecognised spin
-                                            CIS += str(ST[0][0] + 1) + spin_init + "-" + str(
-                                                ST[1][0] + 1) + spin_end + " (" + str(coeff) + ") "
-                                        if len(homo_ind) == 1:  # Restricted calculation Spin is omitted
-                                            CIS += str(ST[0][0] + 1) + "-" + str(ST[1][0] + 1) + "(" + str(
-                                                coeff) + "); "
-                                # select the excited states when there is more than 20 calculated excited states. based on oscillator strength and rotational strength
-                                if (td_selection == 0) or ((td_selection == 1) and ((j < 5) or \
-                                                                                    (json_list[i]["results"][
-                                                                                         "excited_states"]["et_oscs"][
-                                                                                         j] > 0.1) or \
-                                                                                    ((etr_i == "N/A") or (
-                                                                                            abs(etr_i) > 10.)))):
-                                    td_tabu.add_row([(1 + j),
-                                                     json_list[i]["results"]["excited_states"]["et_sym"][j],
-                                                     "%d " % et_nm[j],
-                                                     "%d " % et_energies[j],
-                                                     "%.3f" % json_list[i]["results"]["excited_states"]["et_oscs"][j],
-                                                     "%.1f" % etr_i,
-                                                     # Printing only transitions over 5%
-                                                     "%s" % CIS
-                                                     ])
-                            td_tabu.add_hline()
+                        with doc.create(Tabular('rrrrrrp{6cm}')) as tableau:
+                            row_cells = [MultiColumn(7, align='c',
+                                                     data="Table. Results concerning the calculated mono-electronic optimization excitation")]
+                            tableau.add_row(row_cells)
+                            tableau.add_row(["E.S.", "Symmetry", " nm ", NoEscape(r"cm$^{-1}$"),
+                                             italic("f"), "R", "Excitation description in %"])
+                            tableau.add_hline()
+                            try:
+                                etr_i = json_list[i]["results"]["excited_states"]["et_rot"][emi_index]
+                            except KeyError:
+                                etr_i = "N/A"
+                            trans = json_list[i]["results"]["excited_states"]["et_transitions"][emi_index]
+                            # Form the string description of the escitation. Based on MO init -> MO end (%coeff)
+                            CIS = " "
+                            for subtrans, ST in enumerate(trans):
+                                coeff = int(ST[2] ** 2 * 100)
+                                if len(homo_ind) == 2:  # Unrestricted calculation Spin needs to be printed
+                                    if ST[0][1] == 0:
+                                        spin_init = "a"  # spin alpha to print in the table
+                                    elif ST[0][1] == 1:
+                                        spin_init = "b"  # spin beta to print in the table
+                                    else:
+                                        spin_init = ""  # unrecognised spin
+                                    if ST[1][1] == 0:
+                                        spin_end = "a"  # spin alpha to print in the table
+                                    elif ST[1][1] == 1:
+                                        spin_end = "b"  # spin beta to print in the table
+                                    else:
+                                        spin_end = ""  # unrecognised spin
+                                    CIS += str(ST[0][0] + 1) + spin_init + "-" + str(
+                                        ST[1][0] + 1) + spin_end + " (" + str(coeff) + ") "
+                                if len(homo_ind) == 1:  # Restricted calculation Spin is omitted
+                                    CIS += str(ST[0][0] + 1) + "->" + str(ST[1][0] + 1) + " (" + str(coeff) + ") "
+                            tableau.add_row([(2),
+                                             json_list[i]["results"]["excited_states"]["et_sym"][emi_index],
+                                             "%d " % et_nm[emi_index],
+                                             "%d " % emi_energy,
+                                             "%.3f" % json_list[i]["results"]["excited_states"]["et_oscs"][
+                                                 emi_index],
+                                             "%s" % etr_i,  # "%.3f" % etr_i, ToDo NOT working when et rot  = N/A
+                                             # trying to reduce CIS size size it can too large too fit in the page
+                                             "%s" % CIS
+                                             ])
+                            tableau.add_hline()
                     else:
-                        with doc.create(Tabular('rrrrrrrrrp{6cm}')) as td_tabu:
-                            if rnbExci < 21:
-                                row_cells = [MultiColumn(10, align='c',
-                                                         data="Table. Results concerning the calculated mono-electronic excitations.")]
-                                td_selection = 0
-                            else:  # select the excited states when there is more than 20 calculated excited states.
-                                row_cells = [MultiColumn(10, align='c',
-                                                         data="Table. First five calculated mono-electronic excitations and those with f > 0.1 or R > 10."
-                                                         )]
-                                td_selection = 1
-                            td_tabu.add_row(row_cells)
-                            td_tabu.add_row(["E.S.", "Symmetry", " nm ", NoEscape(r"cm$^{-1}$"),
+                        with doc.create(Tabular('rrrrrrrrrp{6cm}')) as tableau:
+                            row_cells = [MultiColumn(10, align='c',
+                                                     data="Table. Results concerning the calculated mono-electronic optimization excitation")]
+                            tableau.add_row(row_cells)
+                            tableau.add_row(["E.S.", "Symmetry", " nm ", NoEscape(r"cm$^{-1}$"),
                                              italic("f"), "R", NoEscape(r"$\Lambda$"), NoEscape(r"d$_{CT}$"),
-                                             NoEscape(r"q$_{CT}$"),
-                                             "Excitation description : initial OM - ending OM (% if > 5%)"])
-                            td_tabu.add_hline()
-                            for j in range(rnbExci):
-                                try:
-                                    etr_i = json_list[i]["results"]["excited_states"]["et_rot"][j]
-                                except KeyError:
-                                    etr_i = 0.
-                                trans = json_list[i]["results"]["excited_states"]["et_transitions"][j]
-                                # Form the string description of the escitation. Based on MO init -> MO end (%coeff)
-                                CIS = " "
-                                for subtrans, ST in enumerate(trans):
-                                    coeff = int(ST[2] ** 2 * 100)
-                                    if coeff > 5.:
-                                        if len(homo_ind) == 2:  # Unrestricted calculation Spin needs to be printed
-                                            if ST[0][1] == 0:
-                                                spin_init = "a"  # spin alpha to print in the table
-                                            elif ST[0][1] == 1:
-                                                spin_init = "b"  # spin beta to print in the table
-                                            else:
-                                                spin_init = ""  # unrecognised spin
-                                            if ST[1][1] == 0:
-                                                spin_end = "a"  # spin alpha to print in the table
-                                            elif ST[1][1] == 1:
-                                                spin_end = "b"  # spin beta to print in the table
-                                            else:
-                                                spin_end = ""  # unrecognised spin
-                                            CIS += str(ST[0][0] + 1) + spin_init + "-" + str(
-                                                ST[1][0] + 1) + spin_end + " (" + str(coeff) + ") "
-                                        if len(homo_ind) == 1:  # Restricted calculation Spin is omitted
-                                            CIS += str(ST[0][0] + 1) + "-" + str(ST[1][0] + 1) + "(" + str(
-                                                coeff) + "); "
-                                # select the excited states when there is more than 20 calculated excited states. based on oscillator strength and rotational strength
-                                if (td_selection == 0) or ((td_selection == 1) and ((j < 5) or \
-                                                                                    (json_list[i]["results"][
-                                                                                         "excited_states"]["et_oscs"][
-                                                                                         j] > 0.1) or \
-                                                                                    ((etr_i == "N/A") or (
-                                                                                            abs(etr_i) > 10.)))):
-                                    td_tabu.add_row([(1 + j),
-                                                     json_list[i]["results"]["excited_states"]["et_sym"][j],
-                                                     "%d " % et_nm[j],
-                                                     "%d " % et_energies[j],
-                                                     "%.3f" % json_list[i]["results"]["excited_states"]["et_oscs"][j],
-                                                     "%.1f" % etr_i,
-                                                     "%.2f" % json_list[i]["results"]["excited_states"]["Tozer_lambda"][
-                                                         j],
-                                                     "%.2f" % json_list[i]["results"]["excited_states"]["d_ct"][j],
-                                                     "%.2f" % json_list[i]["results"]["excited_states"]["q_ct"][j],
-                                                     # Printing only transitions over 5%
-                                                     "%s" % CIS
-                                                     ])
-
-                            td_tabu.add_hline()
+                                             NoEscape(r"q$_{CT}$"), "Excitation description in %"])
+                            tableau.add_hline()
+                            try:
+                                etr_i = json_list[i]["results"]["excited_states"]["et_rot"][emi_index]
+                            except KeyError:
+                                etr_i = "N/A"
+                            trans = json_list[i]["results"]["excited_states"]["et_transitions"][emi_index]
+                            # Form the string description of the escitation. Based on MO init -> MO end (%coeff)
+                            CIS = " "
+                            for subtrans, ST in enumerate(trans):
+                                coeff = int(ST[2] ** 2 * 100)
+                                if len(homo_ind) == 2:  # Unrestricted calculation Spin needs to be printed
+                                    if ST[0][1] == 0:
+                                        spin_init = "a"  # spin alpha to print in the table
+                                    elif ST[0][1] == 1:
+                                        spin_init = "b"  # spin beta to print in the table
+                                    else:
+                                        spin_init = ""  # unrecognised spin
+                                    if ST[1][1] == 0:
+                                        spin_end = "a"  # spin alpha to print in the table
+                                    elif ST[1][1] == 1:
+                                        spin_end = "b"  # spin beta to print in the table
+                                    else:
+                                        spin_end = ""  # unrecognised spin
+                                    CIS += str(ST[0][0] + 1) + spin_init + "-" + str(
+                                        ST[1][0] + 1) + spin_end + " (" + str(coeff) + ") "
+                                if len(homo_ind) == 1:  # Restricted calculation Spin is omitted
+                                    CIS += str(ST[0][0] + 1) + "->" + str(ST[1][0] + 1) + " (" + str(coeff) + ") "
+                            tableau.add_row([(2),
+                                             json_list[i]["results"]["excited_states"]["et_sym"][emi_index],
+                                             "%d " % et_nm[emi_index],
+                                             "%d " % emi_energy,
+                                             "%.3f" % json_list[i]["results"]["excited_states"]["et_oscs"][
+                                                 emi_index],
+                                             "%s" % etr_i,  # "%.3f" % etr_i, ToDo NOT working when et rot  = N/A
+                                             "%.2f" % json_list[i]["results"]["excited_states"]["Tozer_lambda"][
+                                                 emi_index],
+                                             "%.2f" % json_list[i]["results"]["excited_states"]["d_ct"][emi_index],
+                                             "%.2f" % json_list[i]["results"]["excited_states"]["q_ct"][emi_index],
+                                             # trying to reduce CIS size size it can too large too fit in the page
+                                             "%s" % CIS
+                                             ])
+                            tableau.add_hline()
                     doc.append(NoEscape(r'\end{center}'))
-        """
-        # UV visible Absorption and Circular dischroism plots
-        print("test")
-        nomPng3 = "temp/img-UV-Abso-Spectrum.png"
+"""
+                    # UV visible Emission and Circular dischroism plots
+        nomPng3 = "temp/img-UV-Emi-Spectrum.png"
         if (not os.path.isfile(nomPng3)):
             print("No PNG named " + nomPng3 + " found. The spectrum can not be added to the report.\n")
         else:
-            figure_one_col(doc, nomPng3, "Calculated UV visible Absorption spectrum with a gaussian broadening (FWHM = 3000 cm-1)")
+            figure_one_col(doc, nomPng3, "Calculated UV visible Emission spectrum with a gaussian broadening (FWHM = 3000 cm-1)")
 
-        nomPng4 = "temp/img-UV-CD-Spectrum.png"
+        nomPng4 = "temp/img-UV-CD-Emi-Spectrum.png"
         if (not os.path.isfile(nomPng4)):
             print("No PNG named " + nomPng4 + " found. The spectrum can not be added to the report.\n")
         else:
-            figure_one_col(doc, nomPng4, "Calculated Circular Dichroism spectrum with a gaussian broadening (FWHM = 3000 cm-1)")
+            figure_one_col(doc, nomPng4, "Calculated Circular Dichroism Emission spectrum with a gaussian broadening (FWHM = 3000 cm-1)")
 
+        if report_type != 'text':
+            # figure with EDD for emission
+            nomPng = "temp/img-emi-EDD-S1.png"
+            if (os.path.isfile(nomPng)):
+                figure_one_col(doc, nomPng, "Representation of the Electron Density Difference (S1-GS) after optimization of the excited state. The excited electron and the hole regions are indicated by respectively white and blue surfaces to ease comparison with the corresponding absorption transition.")
+
+        ######## Table of atomic coordinates
+        # doc.append(NoEscape(r'\clearpage'))
+        atomic = data_ref["results"]["geometry"]["elements_3D_coords_converged"]
+        oxtrf, oytrf, oxtrd, oytrd = ('N/A', 'N/A', 'N/A', 'N/A')
+
+        t = []
+        t.append(["", "Table. Converged cartesian atomic coordinates in Angstroms", "", "", "", ""])
+        t.append(["", "Atom", 'X', 'Y', 'Z'])
+        atoms = np.array(json_list[i]["results"]["geometry"]["elements_3D_coords_converged"]).reshape((-1, 3))
+        for j, a in enumerate(atoms):
+            t.append(["", PeriodicTable().element[json_list[i]['molecule']["atoms_Z"][j]], "%.4f" % a[0], "%.4f" % a[1], "%.4f" % a[2], ""])
+        table = create_table(doc, t)
+        set_horizontal_line(table, 1, True, 8)
+        set_horizontal_line(table, len(table.rows), True, 8)
+        table.rows[0].cells[1].merge(table.rows[0].cells[4])
 
     doc.save("test.docx")
