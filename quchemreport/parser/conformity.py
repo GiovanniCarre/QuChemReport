@@ -34,8 +34,6 @@ def tests(job_types, config, jf):
         package =  jf[i]["comp_details"]["general"]["package"]
         formulas.append(jf[i]["molecule"]["formula"])
         nres.append(jf[i]["results"]["geometry"]["nuclear_repulsion_energy_from_xyz"])
-        if 'SP' in job_types[i]:
-            pass
         if (('OPT_ES' in job_types[i]) or
             ('FREQ_ES' in job_types[i])) :
             print ('Detected optimized excited state in :', jf[i]['metadata']['log_file'])
