@@ -192,7 +192,7 @@ def json2latex(config, json_list, data, mode="clean"):
             OPT_param_print = False
             for i,jsonfile in enumerate(json_list):
                 #OPT calculation parameters :
-                if (('OPT' in job_types[i]) or ('FREQ' in job_types[i] and 'OPT' in job_types[i]job_types[i])) and (OPT_param_print == False) :
+                if (('OPT' in job_types[i]) or ('FREQ' in job_types[i] and 'OPT' in job_types[i])) and (OPT_param_print == False) :
                     param_table.add_row([" ", " " , " "])
                     k = 0
                     j = str(k+1)
