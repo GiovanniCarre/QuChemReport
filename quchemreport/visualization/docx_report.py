@@ -1,12 +1,13 @@
 from docx import Document
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.shared import Inches, Pt
-from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_PARAGRAPH_ALIGNMENT
+from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_PARAGRAPH_ALIGNMENT, WD_TAB_ALIGNMENT, WD_TAB_LEADER
 import os
 from docx.shared import Pt, RGBColor
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 import numpy as np
+from datetime import datetime
 from quchemreport.utils.units import nm_to_wnb
 
 from cclib.parser.utils import PeriodicTable
@@ -108,8 +109,10 @@ def create_table(doc, t):
     tbl_pr.append(tbl_ind)
     return table
 
-def figure_one_col(doc, img_path1, caption_text, width_in_inches=2.5):
-    run1 = doc.add_paragraph().add_run()
+def figure_one_col(doc, img_path1, caption_text, width_in_inches=4):
+    p_img = doc.add_paragraph()
+    p_img.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+    run1 = p_img.add_run()
     run1.add_picture(img_path1, width=Inches(width_in_inches))
     doc.add_paragraph()
     caption = doc.add_paragraph(caption_text)
@@ -118,23 +121,106 @@ def figure_one_col(doc, img_path1, caption_text, width_in_inches=2.5):
     run.italic = True
     run.font.size = Pt(10)
 
-def figure_two_col(doc, img_path1, img_path2, caption_text, width_in_inches=2.5):
+
+def figure_two_col(doc, img_path1, img_path2, caption_text, width_in_inches=3.5):
     table = doc.add_table(rows=1, cols=2)
     table.autofit = True
-    cell1 = table.cell(0, 0)
-    cell2 = table.cell(0, 1)
-    p1 = cell1.paragraphs[0]
-    p2 = cell2.paragraphs[0]
-    run1 = p1.add_run()
-    run1.add_picture(img_path1, width=Inches(width_in_inches))
-    run2 = p2.add_run()
-    run2.add_picture(img_path2, width=Inches(width_in_inches))
+    p1 = table.cell(0, 0).paragraphs[0]
+    p1.add_run().add_picture(img_path1, width=Inches(width_in_inches))
+    p1.paragraph_format.left_indent = None
+    p1.paragraph_format.right_indent = None
+    p1.paragraph_format.space_before = 0
+    p1.paragraph_format.space_after = 0
+    p1.style = doc.styles['Normal']
+    table.cell(0, 1).paragraphs[0].add_run().add_picture(img_path2, width=Inches(width_in_inches))
     doc.add_paragraph()
     caption = doc.add_paragraph(caption_text)
     caption.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
     run = caption.runs[0]
     run.italic = True
     run.font.size = Pt(10)
+    set_all_cell_borders(table, False)
+    return table
+
+def add_footer(doc):
+    """
+    section = doc.sections[0]
+    footer = section.footer
+    footer.is_linked_to_previous = False
+    p = footer.paragraphs[0]
+    p.paragraph_format.space_after = Pt(5)
+    p_bdr = OxmlElement('w:pBdr')
+    top = OxmlElement('w:top')
+    top.set(qn('w:val'), 'single')
+    top.set(qn('w:sz'), '6')
+    top.set(qn('w:space'), '1')
+    top.set(qn('w:color'), 'auto')
+    p._element.get_or_add_pPr().append(p_bdr)
+    p_bdr.append(top)
+    para = footer.add_paragraph()
+    para.paragraph_format.space_after = Pt(0)
+    para.paragraph_format.space_before = Pt(0)
+    para.paragraph_format.left_indent = Pt(0)
+    para.paragraph_format.right_indent = Pt(0)
+    para.paragraph_format.tab_stops.add_tab_stop(Pt(500))
+    now = datetime.now()
+    day = now.day
+    suffix = 'th' if 11 <= day <= 13 else {1: 'st', 2: 'nd', 3: 'rd'}.get(day % 10, 'th')
+    date_str = now.strftime(f"%A {day}{suffix} %B, %Y  %H:%M")
+    run_left = para.add_run(date_str)
+    run_left.font.size = Pt(10)
+    run_right = para.add_run("\tPage ")
+    run_right.font.size = Pt(10)
+    fldChar1 = OxmlElement('w:fldChar')
+    fldChar1.set(qn('w:fldCharType'), 'begin')
+    instrText = OxmlElement('w:instrText')
+    instrText.set(qn('xml:space'), 'preserve')
+    instrText.text = "PAGE"
+    fldChar2 = OxmlElement('w:fldChar')
+    fldChar2.set(qn('w:fldCharType'), 'end')
+    run_right._r.append(fldChar1)
+    run_right._r.append(instrText)
+    run_right._r.append(fldChar2)
+    """
+    section = doc.sections[-1]
+    footer = section.footer
+    footer.is_linked_to_previous = False
+    table = footer.add_table(rows=1, cols=1, width=1)
+    table.alignment = WD_PARAGRAPH_ALIGNMENT.LEFT
+    table.allow_autofit = True
+    cell = table.cell(0, 0)
+
+    para = cell.paragraphs[0]
+    para.style = doc.styles['Normal']
+
+    # Définir tabulation à droite
+    tab_stops = para.paragraph_format.tab_stops
+    tab_stops.add_tab_stop(Inches(6.5), alignment=WD_TAB_ALIGNMENT.RIGHT, leader=WD_TAB_LEADER.SPACES)
+
+    # Texte de gauche (date + heure)
+    now = datetime.now().strftime("%A %dᵗʰ %B, %Y  %H:%M")
+    run_left = para.add_run(now)
+    run_left.font.size = Pt(10)
+
+    # Texte de droite (après tabulation)
+    run_right = para.add_run("\tPage ")
+    run_right.font.size = Pt(10)
+
+    # Champ dynamique PAGE
+    fldChar1 = OxmlElement('w:fldChar')
+    fldChar1.set(qn('w:fldCharType'), 'begin')
+
+    instrText = OxmlElement('w:instrText')
+    instrText.set(qn('xml:space'), 'preserve')
+    instrText.text = "PAGE"
+
+    fldChar2 = OxmlElement('w:fldChar')
+    fldChar2.set(qn('w:fldCharType'), 'end')
+
+    run_right._r.append(fldChar1)
+    run_right._r.append(instrText)
+    run_right._r.append(fldChar2)
+
 
 def json2docx(config, json_list, data, mode="clean"):
     ### SECTION 1
@@ -155,16 +241,7 @@ def json2docx(config, json_list, data, mode="clean"):
     run.font.size = Pt(14)
     section_title_format = section_title.paragraph_format
     section_title_format.space_after = Pt(6)
-    tablepos = create_table(doc, [["", ""]])
-    left_cell = tablepos.cell(0, 0)
-    right_cell = tablepos.cell(0, 1)
-    left_cell.paragraphs[0].add_run().add_picture("temp/img-TOPOLOGY.png", Pt(200))
-    right_cell.paragraphs[0].add_run().add_picture("temp/img-TOPOLOGY_cam2.png", Pt(200))
-    last_paragraph = doc.paragraphs[-1]
-    last_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    caption = doc.add_paragraph("Figure 1: Chemical structure diagram with atomic numbering from two points of view.")
-    caption.alignment = WD_ALIGN_PARAGRAPH.CENTER
-
+    figure_two_col(doc, "temp/img-TOPOLOGY.png", "temp/img-TOPOLOGY_cam2.png", "Figure 1: Chemical structure diagram with atomic numbering from two points of view.", 3)
     inchi = (data_ref["molecule"]["inchi"]).rstrip().split("=")[-1]
     t = [
         ["Directory name", dirname],
@@ -242,7 +319,7 @@ def json2docx(config, json_list, data, mode="clean"):
                     t.append(["RMS Force value and threshold", geomValues[1], geomTargets[1]])
             except:
                 pass
-                # FREQ calculation parameters :
+        # FREQ calculation parameters :
         if job_types[i] == ['FREQ'] or job_types[i] == ['FREQ', 'OPT'] or job_types[i] == ['FREQ', 'OPT', 'TD']:
             k = 0
             j = str(k + 1)
@@ -283,9 +360,9 @@ def json2docx(config, json_list, data, mode="clean"):
     display_vertical_lines(table)
     set_vertical_line(table, 1, False)
     doc.add_paragraph("\nJob type: Geometry optimization")
-    table.columns[0].width = Pt(200)
-    table.columns[1].width = Pt(200)
-    table.columns[2].width = Pt(80)
+    table.columns[0].width = Pt(300)
+    table.columns[1].width = Pt(80)
+    table.columns[2].width = Pt(100)
 
 
     ### section 3 : results
@@ -441,7 +518,7 @@ def json2docx(config, json_list, data, mode="clean"):
                         t.append([ " " , "%s %d" %(PeriodicTable().element[json_list[i]['molecule']["atoms_Z"][ielt]], (1+ielt)), "  %+.3f" % mulliken[ielt] ])
 
             elif (len(hirsh) != 0) and (len(cm5) != 0):
-                pass
+                pass #TODO
                 """
                 # Hirshfeld and CM5 partial charges table
                 cm5 = np.array(cm5)
@@ -503,7 +580,7 @@ def json2docx(config, json_list, data, mode="clean"):
             fdual_lambda_hirshfeld = []
         # Test if Fdual is available. If not Table is not mandatory.
         if len(fdual_lambda_hirshfeld) > 0:
-            pass
+            pass #TODO
             """
             fdual_lambda_hirshfeld = np.array(fdual_lambda_hirshfeld)
             mean_fd = np.mean(fdual_lambda_hirshfeld)
@@ -580,9 +657,9 @@ def json2docx(config, json_list, data, mode="clean"):
     display_vertical_lines(table)
     set_vertical_line(table, 1, False)
     doc.add_paragraph("\nJob type: Geometry optimization")
-    table.columns[0].width = Pt(200)
-    table.columns[1].width = Pt(200)
-    table.columns[2].width = Pt(80)
+    table.columns[0].width = Pt(300)
+    table.columns[1].width = Pt(80)
+    table.columns[2].width = Pt(100)
     ## List of figures. Beware insertion based on files. Should be given through arguments!
     # figure with MO not available in text report type
     if report_type != 'text':
@@ -646,19 +723,16 @@ def json2docx(config, json_list, data, mode="clean"):
             if (os.path.isfile(nomPng2)):
                 figure_two_col(doc, nomPng, nomPng2, "Representations of the Molecular Electrostatic Potential mapped on the electron density (cutoff value of 0.002 e-/bohr3). On the left, red, blue and green regions correspond to negative values < -0.06 a.u., positive values > 0.08 a.u. and neutral values respectively. On the right, the scale is set automatically to highlight the minimum values in red and the maximum values in blues.")
             elif (not os.path.isfile(nomPng2)):
-                pass #TODO figure_one_col(doc, nomPng, taillePng="10cm", "Representations of the Molecular Electrostatic Potential mapped on the electron density (cutoff value of 0.002 e-/bohr3). On the left, red, blue and green regions correspond to negative values < -0.06 a.u., positive values > 0.08 a.u. and neutral values respectively.")
+                figure_one_col(doc, nomPng, "Representations of the Molecular Electrostatic Potential mapped on the electron density (cutoff value of 0.002 e-/bohr3). On the left, red, blue and green regions correspond to negative values < -0.06 a.u., positive values > 0.08 a.u. and neutral values respectively.")
 
         # External picture generated by AIMAll
         nomPng = "temp/img-AIM-BCP-rho.png"
         if (not os.path.isfile(nomPng)):
             print(nomPng + " not found. It can not be added to the report.\n")
         else:
-            pass#TODO figure_one_col(doc, nomPng, taillePng="10cm", "Electron density value at each of the bond critical points calculated with the AIMAll program.")
+            figure_one_col(doc, nomPng, "Electron density value at each of the bond critical points calculated with the AIMAll program.")
 
     # Specific OPT and FREQ report tables
-
-    # TODO
-    """
     for i, jsonfile in enumerate(json_list):
         # Normal modes table
         if job_types[i] == ['FREQ'] or job_types[i] == ['FREQ', 'OPT'] or job_types[i] == ['FREQ', 'OPT', 'TD']:
@@ -684,18 +758,16 @@ def json2docx(config, json_list, data, mode="clean"):
                 vibrational_int = vibrational_int[vib_filter][vib_order]
                 vibrational_freq = vibrational_freq[vib_filter][vib_order]
                 vibrational_sym = vibrational_sym[vib_filter][vib_order]
-            with doc.create(Tabular('rrrc')) as tableau:
-                row_cells = [MultiColumn(4, align='c',
-                                         data="Table. Most intense (> 50 km/mol) molecular vibrations in wavenumbers")]
-                tableau.add_row(row_cells)
-                tableau.add_row(["", "Frequencies", "Intensity", "Symmetry"])
-                tableau.add_hline()
-                for k in range(len(vibrational_freq)):
-                    tableau.add_row(["",
-                                     "%d" % vibrational_freq[k],
-                                     "%d" % vibrational_int[k],
-                                     vibrational_sym[k]])
-                tableau.add_hline()
+            t = []
+            t.append("Table. Most intense (> 50 km/mol) molecular vibrations in wavenumbers")
+            t.append(["", "Frequencies", "Intensity", "Symmetry"])
+            t.append(["", "", "", ""])
+            for k in range(len(vibrational_freq)):
+                t.append(["",
+                                 "%d" % vibrational_freq[k],
+                                 "%d" % vibrational_int[k],
+                                 vibrational_sym[k]])
+            t.append(["", "", "", ""])
 
         # TD calculation results :
         if job_types[i] == ['TD'] or job_types[i] == ['FREQ', 'OPT', 'TD']:
@@ -708,140 +780,124 @@ def json2docx(config, json_list, data, mode="clean"):
             et_nm = [nm_to_wnb / x for x in et_energies]
             rnbExci = len(et_energies)
             if rnbExci != 0 and et_energies != 'N/A':
-                doc.append(NoEscape(r'\begin{center}'))
                 # 2 kind of table including the charge transfer data when discretization is done (SI and Full)
                 if report_type == 'text':
-                    with doc.create(Tabular('rrrrrrp{6cm}')) as td_tabu:
-                        if rnbExci < 21:
-                            row_cells = [MultiColumn(7, align='c',
-                                                     data="Table. Results concerning the calculated mono-electronic excitations.")]
-                            td_selection = 0
-                        else:  # select the excited states when there is more than 20 calculated excited states.
-                            row_cells = [MultiColumn(7, align='c',
-                                                     data="Table. First five calculated mono-electronic excitations and those with f > 0.1 or R > 10."
-                                                     )]
-                            td_selection = 1
-                        td_tabu.add_row(row_cells)
-                        td_tabu.add_row(["E.S.", "Symmetry", " nm ", NoEscape(r"cm$^{-1}$"),
-                                         italic("f"), "R",
-                                         "Excitation description : initial OM - ending OM (% if > 5%)"])
-                        td_tabu.add_hline()
-                        for j in range(rnbExci):
-                            try:
-                                etr_i = json_list[i]["results"]["excited_states"]["et_rot"][j]
-                            except KeyError:
-                                etr_i = 0.
-                            trans = json_list[i]["results"]["excited_states"]["et_transitions"][j]
-                            # Form the string description of the escitation. Based on MO init -> MO end (%coeff)
-                            CIS = " "
-                            for subtrans, ST in enumerate(trans):
-                                coeff = int(ST[2] ** 2 * 100)
-                                if coeff > 5.:
-                                    if len(homo_ind) == 2:  # Unrestricted calculation Spin needs to be printed
-                                        if ST[0][1] == 0:
-                                            spin_init = "a"  # spin alpha to print in the table
-                                        elif ST[0][1] == 1:
-                                            spin_init = "b"  # spin beta to print in the table
-                                        else:
-                                            spin_init = ""  # unrecognised spin
-                                        if ST[1][1] == 0:
-                                            spin_end = "a"  # spin alpha to print in the table
-                                        elif ST[1][1] == 1:
-                                            spin_end = "b"  # spin beta to print in the table
-                                        else:
-                                            spin_end = ""  # unrecognised spin
-                                        CIS += str(ST[0][0] + 1) + spin_init + "-" + str(
-                                            ST[1][0] + 1) + spin_end + " (" + str(coeff) + ") "
-                                    if len(homo_ind) == 1:  # Restricted calculation Spin is omitted
-                                        CIS += str(ST[0][0] + 1) + "-" + str(ST[1][0] + 1) + "(" + str(
-                                            coeff) + "); "
-                            # select the excited states when there is more than 20 calculated excited states. based on oscillator strength and rotational strength
-                            if (td_selection == 0) or ((td_selection == 1) and ((j < 5) or \
-                                                                                (json_list[i]["results"][
-                                                                                     "excited_states"]["et_oscs"][
-                                                                                     j] > 0.1) or \
-                                                                                ((etr_i == "N/A") or (
-                                                                                        abs(etr_i) > 10.)))):
-                                td_tabu.add_row([(1 + j),
-                                                 json_list[i]["results"]["excited_states"]["et_sym"][j],
-                                                 "%d " % et_nm[j],
-                                                 "%d " % et_energies[j],
-                                                 "%.3f" % json_list[i]["results"]["excited_states"]["et_oscs"][j],
-                                                 "%.1f" % etr_i,
-                                                 # Printing only transitions over 5%
-                                                 "%s" % CIS
-                                                 ])
-                        td_tabu.add_hline()
+                    t = []
+                    if rnbExci < 21:
+                        t.append(["Table. Results concerning the calculated mono-electronic excitations."])
+                        td_selection = 0
+                    else:  # select the excited states when there is more than 20 calculated excited states.
+                        t.append(["Table. First five calculated mono-electronic excitations and those with f > 0.1 or R > 10."])
+                        td_selection = 1
+                    t.append(["E.S.", "Symmetry", " nm ", "", "", "R", "Excitation description : initial OM - ending OM (% if > 5%)"])
+                    t.append(["", "", "", "", "", "", ""])
+                    for j in range(rnbExci):
+                        try:
+                            etr_i = json_list[i]["results"]["excited_states"]["et_rot"][j]
+                        except KeyError:
+                            etr_i = 0.
+                        trans = json_list[i]["results"]["excited_states"]["et_transitions"][j]
+                        # Form the string description of the escitation. Based on MO init -> MO end (%coeff)
+                        CIS = " "
+                        for subtrans, ST in enumerate(trans):
+                            coeff = int(ST[2] ** 2 * 100)
+                            if coeff > 5.:
+                                if len(homo_ind) == 2:  # Unrestricted calculation Spin needs to be printed
+                                    if ST[0][1] == 0:
+                                        spin_init = "a"  # spin alpha to print in the table
+                                    elif ST[0][1] == 1:
+                                        spin_init = "b"  # spin beta to print in the table
+                                    else:
+                                        spin_init = ""  # unrecognised spin
+                                    if ST[1][1] == 0:
+                                        spin_end = "a"  # spin alpha to print in the table
+                                    elif ST[1][1] == 1:
+                                        spin_end = "b"  # spin beta to print in the table
+                                    else:
+                                        spin_end = ""  # unrecognised spin
+                                    CIS += str(ST[0][0] + 1) + spin_init + "-" + str(
+                                        ST[1][0] + 1) + spin_end + " (" + str(coeff) + ") "
+                                if len(homo_ind) == 1:  # Restricted calculation Spin is omitted
+                                    CIS += str(ST[0][0] + 1) + "-" + str(ST[1][0] + 1) + "(" + str(
+                                        coeff) + "); "
+                        # select the excited states when there is more than 20 calculated excited states. based on oscillator strength and rotational strength
+                        if (td_selection == 0) or ((td_selection == 1) and ((j < 5) or \
+                                                                            (json_list[i]["results"][
+                                                                                 "excited_states"]["et_oscs"][
+                                                                                 j] > 0.1) or \
+                                                                            ((etr_i == "N/A") or (
+                                                                                    abs(etr_i) > 10.)))):
+                            t.append([(1 + j),
+                                             json_list[i]["results"]["excited_states"]["et_sym"][j],
+                                             "%d " % et_nm[j],
+                                             "%d " % et_energies[j],
+                                             "%.3f" % json_list[i]["results"]["excited_states"]["et_oscs"][j],
+                                             "%.1f" % etr_i,
+                                             # Printing only transitions over 5%
+                                             "%s" % CIS
+                                             ])
+                    t.append(["", "", "", "", "", "", ""])
                 else:
-                    with doc.create(Tabular('rrrrrrrrrp{6cm}')) as td_tabu:
-                        if rnbExci < 21:
-                            row_cells = [MultiColumn(10, align='c',
-                                                     data="Table. Results concerning the calculated mono-electronic excitations.")]
-                            td_selection = 0
-                        else:  # select the excited states when there is more than 20 calculated excited states.
-                            row_cells = [MultiColumn(10, align='c',
-                                                     data="Table. First five calculated mono-electronic excitations and those with f > 0.1 or R > 10."
-                                                     )]
-                            td_selection = 1
-                        td_tabu.add_row(row_cells)
-                        td_tabu.add_row(["E.S.", "Symmetry", " nm ", NoEscape(r"cm$^{-1}$"),
-                                         italic("f"), "R", NoEscape(r"$\Lambda$"), NoEscape(r"d$_{CT}$"),
-                                         NoEscape(r"q$_{CT}$"),
-                                         "Excitation description : initial OM - ending OM (% if > 5%)"])
-                        td_tabu.add_hline()
-                        for j in range(rnbExci):
-                            try:
-                                etr_i = json_list[i]["results"]["excited_states"]["et_rot"][j]
-                            except KeyError:
-                                etr_i = 0.
-                            trans = json_list[i]["results"]["excited_states"]["et_transitions"][j]
-                            # Form the string description of the escitation. Based on MO init -> MO end (%coeff)
-                            CIS = " "
-                            for subtrans, ST in enumerate(trans):
-                                coeff = int(ST[2] ** 2 * 100)
-                                if coeff > 5.:
-                                    if len(homo_ind) == 2:  # Unrestricted calculation Spin needs to be printed
-                                        if ST[0][1] == 0:
-                                            spin_init = "a"  # spin alpha to print in the table
-                                        elif ST[0][1] == 1:
-                                            spin_init = "b"  # spin beta to print in the table
-                                        else:
-                                            spin_init = ""  # unrecognised spin
-                                        if ST[1][1] == 0:
-                                            spin_end = "a"  # spin alpha to print in the table
-                                        elif ST[1][1] == 1:
-                                            spin_end = "b"  # spin beta to print in the table
-                                        else:
-                                            spin_end = ""  # unrecognised spin
-                                        CIS += str(ST[0][0] + 1) + spin_init + "-" + str(
-                                            ST[1][0] + 1) + spin_end + " (" + str(coeff) + ") "
-                                    if len(homo_ind) == 1:  # Restricted calculation Spin is omitted
-                                        CIS += str(ST[0][0] + 1) + "-" + str(ST[1][0] + 1) + "(" + str(
-                                            coeff) + "); "
-                            # select the excited states when there is more than 20 calculated excited states. based on oscillator strength and rotational strength
-                            if (td_selection == 0) or ((td_selection == 1) and ((j < 5) or \
-                                                                                (json_list[i]["results"][
-                                                                                     "excited_states"]["et_oscs"][
-                                                                                     j] > 0.1) or \
-                                                                                ((etr_i == "N/A") or (
-                                                                                        abs(etr_i) > 10.)))):
-                                td_tabu.add_row([(1 + j),
-                                                 json_list[i]["results"]["excited_states"]["et_sym"][j],
-                                                 "%d " % et_nm[j],
-                                                 "%d " % et_energies[j],
-                                                 "%.3f" % json_list[i]["results"]["excited_states"]["et_oscs"][j],
-                                                 "%.1f" % etr_i,
-                                                 "%.2f" % json_list[i]["results"]["excited_states"]["Tozer_lambda"][
-                                                     j],
-                                                 "%.2f" % json_list[i]["results"]["excited_states"]["d_ct"][j],
-                                                 "%.2f" % json_list[i]["results"]["excited_states"]["q_ct"][j],
-                                                 # Printing only transitions over 5%
-                                                 "%s" % CIS
-                                                 ])
+                    if rnbExci < 21:
+                        t.append(["Table. Results concerning the calculated mono-electronic excitations."])
+                        td_selection = 0
+                    else:  # select the excited states when there is more than 20 calculated excited states.
+                        t.append(["Table. First five calculated mono-electronic excitations and those with f > 0.1 or R > 10."])
+                        td_selection = 1
+                    t.append(["E.S.", "Symmetry", " nm ", "","", "R", "", "","", "Excitation description : initial OM - ending OM (% if > 5%)"])
+                    t.append(["", "", "", "","", "", "", "","", ""])
+                    for j in range(rnbExci):
+                        try:
+                            etr_i = json_list[i]["results"]["excited_states"]["et_rot"][j]
+                        except KeyError:
+                            etr_i = 0.
+                        trans = json_list[i]["results"]["excited_states"]["et_transitions"][j]
+                        # Form the string description of the escitation. Based on MO init -> MO end (%coeff)
+                        CIS = " "
+                        for subtrans, ST in enumerate(trans):
+                            coeff = int(ST[2] ** 2 * 100)
+                            if coeff > 5.:
+                                if len(homo_ind) == 2:  # Unrestricted calculation Spin needs to be printed
+                                    if ST[0][1] == 0:
+                                        spin_init = "a"  # spin alpha to print in the table
+                                    elif ST[0][1] == 1:
+                                        spin_init = "b"  # spin beta to print in the table
+                                    else:
+                                        spin_init = ""  # unrecognised spin
+                                    if ST[1][1] == 0:
+                                        spin_end = "a"  # spin alpha to print in the table
+                                    elif ST[1][1] == 1:
+                                        spin_end = "b"  # spin beta to print in the table
+                                    else:
+                                        spin_end = ""  # unrecognised spin
+                                    CIS += str(ST[0][0] + 1) + spin_init + "-" + str(
+                                        ST[1][0] + 1) + spin_end + " (" + str(coeff) + ") "
+                                if len(homo_ind) == 1:  # Restricted calculation Spin is omitted
+                                    CIS += str(ST[0][0] + 1) + "-" + str(ST[1][0] + 1) + "(" + str(
+                                        coeff) + "); "
+                        # select the excited states when there is more than 20 calculated excited states. based on oscillator strength and rotational strength
+                        if (td_selection == 0) or ((td_selection == 1) and ((j < 5) or \
+                                                                            (json_list[i]["results"][
+                                                                                 "excited_states"]["et_oscs"][
+                                                                                 j] > 0.1) or \
+                                                                            ((etr_i == "N/A") or (
+                                                                                    abs(etr_i) > 10.)))):
+                            t.append([(1 + j),
+                                             json_list[i]["results"]["excited_states"]["et_sym"][j],
+                                             "%d " % et_nm[j],
+                                             "%d " % et_energies[j],
+                                             "%.3f" % json_list[i]["results"]["excited_states"]["et_oscs"][j],
+                                             "%.1f" % etr_i,
+                                             "%.2f" % json_list[i]["results"]["excited_states"]["Tozer_lambda"][
+                                                 j],
+                                             "%.2f" % json_list[i]["results"]["excited_states"]["d_ct"][j],
+                                             "%.2f" % json_list[i]["results"]["excited_states"]["q_ct"][j],
+                                             # Printing only transitions over 5%
+                                             "%s" % CIS
+                                             ])
 
-                        td_tabu.add_hline()
-                doc.append(NoEscape(r'\end{center}'))
-    """
+
+                create_table(doc, t)
     # UV visible Absorption and Circular dischroism plots
     nomPng3 = "temp/img-UV-Abso-Spectrum.png"
     if (not os.path.isfile(nomPng3)):
@@ -886,7 +942,8 @@ def json2docx(config, json_list, data, mode="clean"):
                         figure_two_col(doc, nomPng, nomPng2, "Representation of the Electron Density Difference (ES1-GS left) and (ES2-GS right). The excited electron and the hole regions are indicated by respectively blue and white surfaces.")
 
         # Specific OPT_ES report tables
-        """TODO
+        #TODO
+        """
         for i, jsonfile in enumerate(json_list):
             # TD emission calculation results :
             if 'OPT_ES' in job_types[i]:
@@ -1035,5 +1092,5 @@ def json2docx(config, json_list, data, mode="clean"):
         set_horizontal_line(table, 1, True, 8)
         set_horizontal_line(table, len(table.rows), True, 8)
         table.rows[0].cells[1].merge(table.rows[0].cells[4])
-
-    doc.save("test.docx")
+    add_footer(doc)
+    doc.save(dirname + "_" + report_type + "_report.docx")
