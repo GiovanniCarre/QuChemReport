@@ -264,7 +264,6 @@ def json2docx(config, json_list, data, mode="clean"):
             k = 0
             j = str(k + 1)
             try:
-                t.append(["Job type: Geometry optimization", " ", " "])
                 geomTargets = json_list[i]["comp_details"]["geometry"]["geometric_targets"]
                 geomValues = json_list[i]["results"]['geometry']['geometric_values'][-1]
                 if software == "Gaussian":  # Gaussian or GAUSSIAN (upper/lower?
@@ -283,7 +282,6 @@ def json2docx(config, json_list, data, mode="clean"):
         if 'FREQ' in job_types[i] or ('FREQ' in job_types[i] and 'OPT' in job_types[i]) or ('FREQ' in job_types[i] and 'OPT' in job_types[i] and 'TD' in job_types[i]):
             k = 0
             j = str(k + 1)
-            t.append(["Job type: Frequency and thermochemical analysis", " ", " "])
             try:
                 t.append(['Temperature', "%.2f K" % json_list[i]["comp_details"]["freq"]["temperature"], "  "])
             except:
@@ -309,7 +307,6 @@ def json2docx(config, json_list, data, mode="clean"):
         if 'TD' in job_types[i] or ('FREQ' in job_types[i] and 'OPT' in job_types[i] and 'TD' in job_types[i]):
             k = 0
             j = str(k + 1)
-            t.append(["Job type: Time-dependent calculation", " ", " "])
             try:
                 t.append(['Number of calculated excited states and spin state', json_list[i]["comp_details"]["excited_states"]["nb_et_states"], np.unique(json_list[i]["results"]["excited_states"]["et_sym"])])
             except KeyError:
@@ -319,10 +316,10 @@ def json2docx(config, json_list, data, mode="clean"):
     set_all_cell_borders(table, False)
     display_vertical_lines(table)
     set_vertical_line(table, 1, False)
-    doc.add_paragraph("\nJob type: Geometry optimization")
     table.columns[0].width = Pt(300)
     table.columns[1].width = Pt(80)
     table.columns[2].width = Pt(100)
+    doc.add_paragraph()
 
 
     ### section 3 : results
@@ -616,7 +613,6 @@ def json2docx(config, json_list, data, mode="clean"):
     set_all_cell_borders(table, False)
     display_vertical_lines(table)
     set_vertical_line(table, 1, False)
-    doc.add_paragraph("\nJob type: Geometry optimization")
     table.columns[0].width = Pt(300)
     table.columns[1].width = Pt(80)
     table.columns[2].width = Pt(100)
