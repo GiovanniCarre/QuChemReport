@@ -1092,5 +1092,6 @@ def json2docx(config, json_list, data, mode="clean"):
         set_horizontal_line(table, 1, True, 8)
         set_horizontal_line(table, len(table.rows), True, 8)
         table.rows[0].cells[1].merge(table.rows[0].cells[4])
+    doc.add_paragraph()
     add_footer(doc)
     doc.save(dirname + "_" + report_type + "_report.docx")
