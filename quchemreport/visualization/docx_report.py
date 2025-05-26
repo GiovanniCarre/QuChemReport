@@ -30,6 +30,7 @@ def add_section_title(doc, title_text):
     shading_elm.set(qn('w:color'), 'auto')
     shading_elm.set(qn('w:fill'), '009080')
     p._element.get_or_add_pPr().append(shading_elm)
+    doc.add_paragraph()
 
 def set_cell_border(cell, **kwargs):
     tc = cell._tc
@@ -194,7 +195,6 @@ def json2docx(config, json_list, data, mode="clean"):
     run = title.add_run("MOLECULAR CALCULATION REPORT")
     run.bold = True
     title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    doc.add_paragraph("")
     section_title = doc.add_paragraph()
     add_section_title(doc, "1. MOLECULE")
     run.bold = True
@@ -616,6 +616,7 @@ def json2docx(config, json_list, data, mode="clean"):
     table.columns[0].width = Pt(300)
     table.columns[1].width = Pt(80)
     table.columns[2].width = Pt(100)
+    doc.add_paragraph()
     ## List of figures. Beware insertion based on files. Should be given through arguments!
     # figure with MO not available in text report type
     if report_type != 'text':
@@ -724,6 +725,7 @@ def json2docx(config, json_list, data, mode="clean"):
             table.rows[0].cells[0].merge(table.rows[0].cells[2])
             set_horizontal_line(table, 2, True, 8)
             set_horizontal_line(table, 3, True, 8)
+            doc.add_paragraph()
 
         # TD calculation results :
         if 'TD' in job_types[i] or ('FREQ' in job_types[i] and 'OPT' in job_types[i] and 'TD' in job_types[i]):
@@ -854,6 +856,7 @@ def json2docx(config, json_list, data, mode="clean"):
 
 
                 create_table(doc, t)
+                doc.add_paragraph()
     # UV visible Absorption and Circular dischroism plots
     nomPng3 = "temp/img-UV-Abso-Spectrum.png"
     if (not os.path.isfile(nomPng3)):
