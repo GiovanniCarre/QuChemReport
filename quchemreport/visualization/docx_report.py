@@ -7,9 +7,9 @@ from docx.shared import Pt, RGBColor
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 import numpy as np
-from datetime import datetime
 from quchemreport.utils.units import nm_to_wnb
-
+import locale
+from datetime import datetime
 from cclib.parser.utils import PeriodicTable
 
 def add_section_title(doc, title_text):
@@ -142,46 +142,18 @@ def figure_two_col(doc, img_path1, img_path2, caption_text, width_in_inches=3.5)
     set_all_cell_borders(table, False)
     return table
 
-def add_footer(doc):
-    """
-    section = doc.sections[0]
-    footer = section.footer
-    footer.is_linked_to_previous = False
-    p = footer.paragraphs[0]
-    p.paragraph_format.space_after = Pt(5)
-    p_bdr = OxmlElement('w:pBdr')
-    top = OxmlElement('w:top')
-    top.set(qn('w:val'), 'single')
-    top.set(qn('w:sz'), '6')
-    top.set(qn('w:space'), '1')
-    top.set(qn('w:color'), 'auto')
-    p._element.get_or_add_pPr().append(p_bdr)
-    p_bdr.append(top)
-    para = footer.add_paragraph()
-    para.paragraph_format.space_after = Pt(0)
-    para.paragraph_format.space_before = Pt(0)
-    para.paragraph_format.left_indent = Pt(0)
-    para.paragraph_format.right_indent = Pt(0)
-    para.paragraph_format.tab_stops.add_tab_stop(Pt(500))
+def get_datetime_string_en():
+    current_locale = locale.getlocale(locale.LC_TIME)
+    try:
+        locale.setlocale(locale.LC_TIME, 'en_US.UTF-8')
+    except locale.Error:
+        locale.setlocale(locale.LC_TIME, 'C')
     now = datetime.now()
-    day = now.day
-    suffix = 'th' if 11 <= day <= 13 else {1: 'st', 2: 'nd', 3: 'rd'}.get(day % 10, 'th')
-    date_str = now.strftime(f"%A {day}{suffix} %B, %Y  %H:%M")
-    run_left = para.add_run(date_str)
-    run_left.font.size = Pt(10)
-    run_right = para.add_run("\tPage ")
-    run_right.font.size = Pt(10)
-    fldChar1 = OxmlElement('w:fldChar')
-    fldChar1.set(qn('w:fldCharType'), 'begin')
-    instrText = OxmlElement('w:instrText')
-    instrText.set(qn('xml:space'), 'preserve')
-    instrText.text = "PAGE"
-    fldChar2 = OxmlElement('w:fldChar')
-    fldChar2.set(qn('w:fldCharType'), 'end')
-    run_right._r.append(fldChar1)
-    run_right._r.append(instrText)
-    run_right._r.append(fldChar2)
-    """
+    date_str = now.strftime("%A %dᵗʰ %B, %Y  %H:%M")
+    locale.setlocale(locale.LC_TIME, current_locale)
+    return date_str
+
+def add_footer(doc):
     section = doc.sections[-1]
     footer = section.footer
     footer.is_linked_to_previous = False
@@ -189,34 +161,22 @@ def add_footer(doc):
     table.alignment = WD_PARAGRAPH_ALIGNMENT.LEFT
     table.allow_autofit = True
     cell = table.cell(0, 0)
-
     para = cell.paragraphs[0]
     para.style = doc.styles['Normal']
-
-    # Définir tabulation à droite
     tab_stops = para.paragraph_format.tab_stops
     tab_stops.add_tab_stop(Inches(6.5), alignment=WD_TAB_ALIGNMENT.RIGHT, leader=WD_TAB_LEADER.SPACES)
-
-    # Texte de gauche (date + heure)
-    now = datetime.now().strftime("%A %dᵗʰ %B, %Y  %H:%M")
+    now = get_datetime_string_en()
     run_left = para.add_run(now)
     run_left.font.size = Pt(10)
-
-    # Texte de droite (après tabulation)
     run_right = para.add_run("\tPage ")
     run_right.font.size = Pt(10)
-
-    # Champ dynamique PAGE
     fldChar1 = OxmlElement('w:fldChar')
     fldChar1.set(qn('w:fldCharType'), 'begin')
-
     instrText = OxmlElement('w:instrText')
     instrText.set(qn('xml:space'), 'preserve')
     instrText.text = "PAGE"
-
     fldChar2 = OxmlElement('w:fldChar')
     fldChar2.set(qn('w:fldCharType'), 'end')
-
     run_right._r.append(fldChar1)
     run_right._r.append(instrText)
     run_right._r.append(fldChar2)
