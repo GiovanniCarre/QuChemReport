@@ -759,15 +759,15 @@ def json2docx(config, json_list, data, mode="clean"):
                 vibrational_freq = vibrational_freq[vib_filter][vib_order]
                 vibrational_sym = vibrational_sym[vib_filter][vib_order]
             t = []
-            t.append("Table. Most intense (> 50 km/mol) molecular vibrations in wavenumbers")
-            t.append(["", "Frequencies", "Intensity", "Symmetry"])
-            t.append(["", "", "", ""])
+            t.append(["Table. Most intense (> 50 km/mol) molecular vibrations in wavenumbers", "", ""])
+            t.append(["Frequencies", "Intensity", "Symmetry"])
             for k in range(len(vibrational_freq)):
-                t.append(["",
-                                 "%d" % vibrational_freq[k],
-                                 "%d" % vibrational_int[k],
-                                 vibrational_sym[k]])
-            t.append(["", "", "", ""])
+                t.append(["%d" % vibrational_freq[k], "%d" % vibrational_int[k], vibrational_sym[k]])
+            t.append(["", "", ""])
+            table = create_table(doc, t)
+            table.rows[0].cells[0].merge(table.rows[0].cells[2])
+            set_horizontal_line(table, 2, True, 8)
+            set_horizontal_line(table, 3, True, 8)
 
         # TD calculation results :
         if job_types[i] == ['TD'] or job_types[i] == ['FREQ', 'OPT', 'TD']:
