@@ -36,8 +36,8 @@ Mayavi (pip3 install : beware of pyface install ! problem with Qt4, Qt5 in profi
 
 # The following only concerns this branch of the project
 
-# User installation (Linux)
-## Installation
+## User installation (Linux)
+### Installation
 To get started, clone the repository and set the proper permissions:
 
 ```bash
@@ -60,7 +60,7 @@ You can then run the application
 
 
 
-# Configuration
+## Configuration
 
 The main configuration file is located in the config/ directory.
 
@@ -69,7 +69,7 @@ To create or edit a configuration file, use the provided HTML-based configuratio
 
 This generator helps you easily build valid YAML files tailored for your report generation needs.
 
-## File Structure
+### File Structure
 
 - config/: Contains YAML configuration files.
 - "Generateur fichier configuration YAML.html": A tool to generate new YAML config files.
