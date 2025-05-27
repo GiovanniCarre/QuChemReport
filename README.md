@@ -42,7 +42,7 @@ To get started, clone the repository and set the proper permissions:
 
 ```bash
 git clone https://github.com/GiovanniCarre/QuChemReport.git
-chmod 777 QuChemReport
+chmod -R u+rwx QuChemReport
 cd QuChemReport
 ```
 
