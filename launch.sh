@@ -13,8 +13,14 @@ if ! conda env list | grep -q "^$ENV_NAME\s"; then
   exit 1
 fi
 
-# rm -f temp/*
+
+if [ -n "$(ls temp/*.png 2>/dev/null)" ]; then
+  rm temp/*.png
+fi
 
 conda activate "$ENV_NAME"
 
 python3 main.py
+
+conda deactivate
+conda deactivate
