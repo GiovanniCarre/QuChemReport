@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Générateur YAML - QuChemReport</title>
+
   <style>
     * {
       box-sizing: border-box;
@@ -115,10 +116,12 @@
       accent-color: #009080;
     }
   </style>
+
 </head>
+
 <body>
 <div class="container">
-  <h1>Générateur de fichier YAML QuChemReport</h1>
+  <h1>Création de configuration QuChemReport</h1>
   <form id="yamlForm">
     <section>
       <label for="common_solver">Solveur commun</label>
@@ -258,6 +261,7 @@ function addLogfile(path = '', type = 'opt', excited_state = '') {
   const types = ['opt', 'freq', 'td', 'opt_es', 'freq_es', 'nmr', 'sp'];
   const selectedTypes = Array.isArray(type) ? type : [type];
 
+  //selection des types
   const checkboxes = types.map(t =>
     `<label style="margin-right: 10px;">
         <input type="checkbox" name="logfile_type" value="${t}" ${selectedTypes.includes(t) ? 'checked' : ''}>
@@ -265,6 +269,7 @@ function addLogfile(path = '', type = 'opt', excited_state = '') {
       </label>`
   ).join('');
 
+  //rajoute les divs du nouveau fichier
   container.innerHTML = `
     <label>Chemin: <input type="text" name="logfile_path" value="${path}"></label>
     <label>Type(s): <div class=\"flex_container\">${checkboxes} </div></label>
@@ -310,6 +315,7 @@ function generateYAML() {
   ];
 
 
+  //fichiers
   const logs = document.querySelectorAll('.logfile-entry');
   logs.forEach(block => {
     const path = block.querySelector('input[name="logfile_path"]').value.trim();
@@ -328,6 +334,7 @@ function generateYAML() {
   yaml.push("  # 'solver' field is now unnecessary due to common_solver\n");
 
 
+  //
   yaml.push('quality_control:');
   yaml.push(`  method_consistency: ${getVal('method_consistency')}  # strict | lax`);
   yaml.push('  checks:');

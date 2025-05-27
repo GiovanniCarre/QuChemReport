@@ -13,6 +13,8 @@ if ! conda env list | grep -q "^$ENV_NAME\s"; then
   exit 1
 fi
 
+# rm -f temp/*
+
 conda activate "$ENV_NAME"
 
 python3 main.py
