@@ -33,76 +33,45 @@ PIL or on conda pillow
 Matplotlib (>3.1)
 Mayavi (pip3 install : beware of pyface install ! problem with Qt4, Qt5 in profile : export QT_API=pyqt, export ETS_TOOLKIT=qt4)
 
-User installation
 
-git clone https://github.com/BenoitDamota/QuChemReport.git
+# The following only concerns this branch of the project
 
+# User installation (Linux)
+## Installation
+To get started, clone the repository and set the proper permissions:
 
-# Using Profiles (.env or .json)
-
-QuChemReport supports reusable configuration profiles to simplify repeated runs.
-Profiles can be stored as .env or .json files in the profiles/ directory.
-Example of a .env profile
-
-# profiles/default.env
-```
-mode=full
-restart=0
-nproc=4
-mem=8
-MEP=false
-noMO=false
-noEDD=false
-verbose=true
+```bash
+git clone https://github.com/GiovanniCarre/QuChemReport.git
+chmod 777 QuChemReport
+cd QuChemReport
 ```
 
-The .env format is human-readable and editable with any text editor.
-Example of a .json profile
+Then, run the installer
 
-// profiles/default.json
-```
-{
-  "mode": "full",
-  "restart": 0,
-  "nproc": 4,
-  "mem": 8,
-  "MEP": false,
-  "noMO": false,
-  "noEDD": false,
-  "verbose": true
-}
+```bash
+./installer
 ```
 
-The .json format is ideal for scripting or automated generation of configuration files.
-Running with a Profile
+You can then run the application
 
-To launch QuChemReport using a profile:
-
-```
-python main.py file1.log file2.log --profile default
+```bash
+./launch
 ```
 
-This will automatically load `profiles/default.env` or `profiles/default.json`, whichever exists.
-
-### Available Profile Parameters
-
-- **mode**: Report verbosity. Can be `full`, `si`, or `text`.
-- **restart**: Restart mode. Use `1` to skip image regeneration if already available, or `0` to force reprocessing.
-- **nproc**: Number of CPU cores used during the discretization process.
-- **mem**: Amount of RAM allocated for processing (in GB).
-- **MEP**: Set to `true` to generate Molecular Electrostatic Potential (MEP) images.
-- **noMO**: Set to `true` to disable the generation of Molecular Orbital images.
-- **noEDD**: Set to `true` to disable the Electronic Density Difference images.
-- **verbose**: Set to `true` to print execution details.
-
-Project History
-
-Help and Support
-Documentation
-
-Communication
-
-Citation
 
 
+# Configuration
 
+The main configuration file is located in the config/ directory.
+
+To create or edit a configuration file, use the provided HTML-based configuration generator:
+"Generateur fichier configuration YAML.html"
+
+This generator helps you easily build valid YAML files tailored for your report generation needs.
+
+## File Structure
+
+- config/: Contains YAML configuration files.
+- "Generateur fichier configuration YAML.html": A tool to generate new YAML config files.
+- installer: Installs required dependencies and sets up the environment.
+- launch: Launches the main application with the default.yaml file in config/ as parameter.
